@@ -13,7 +13,36 @@ else
 	fi
 fi
 
+function ensure_node_version() {
+	local required_node_file="$ROOT/.nvmrc"
+	if [[ ! -f "$required_node_file" ]]; then
+		return 0
+	fi
+
+	local required_node
+	required_node=$(tr -d '[:space:]' < "$required_node_file")
+	if [[ -z "$required_node" ]]; then
+		return 0
+	fi
+
+	local current_node
+	if ! current_node=$(node -p "process.versions.node" 2>/dev/null); then
+		echo "Error: Node.js is required but was not found."
+		echo "Install and use Node.js v$required_node or later."
+		return 1
+	fi
+
+	if ! node -e "const [current, required] = process.argv.slice(1).map(v => v.split('.').map(n => Number(n) || 0)); const len = Math.max(current.length, required.length); for (let i = 0; i < len; i++) { const c = current[i] ?? 0; const r = required[i] ?? 0; if (c > r) process.exit(0); if (c < r) process.exit(1); } process.exit(0);" "$current_node" "$required_node"; then
+		echo "Error: Node.js v$required_node or later is required. Current version: v$current_node."
+		echo "Run:"
+		echo "  nvm install $required_node"
+		echo "  nvm use $required_node"
+		return 1
+	fi
+}
+
 function code() {
+	ensure_node_version
 	cd "$ROOT"
 
 	if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -27,7 +56,15 @@ function code() {
 
 	# Get electron, compile, built-in extensions
 	if [[ -z "${VSCODE_SKIP_PRELAUNCH}" ]]; then
-		node build/lib/preLaunch.ts
+		if ! node build/lib/preLaunch.ts; then
+			echo
+			echo "Prelaunch failed."
+			echo "Common fixes:"
+			echo "  1) Ensure Node.js matches .nvmrc"
+			echo "  2) Run: npm ci"
+			echo "  3) Retry: ./scripts/code.sh"
+			return 1
+		fi
 	fi
 
 	# Manage built-in extensions
@@ -42,6 +79,8 @@ function code() {
 	export VSCODE_CLI=1
 	export ELECTRON_ENABLE_STACK_DUMPING=1
 	export ELECTRON_ENABLE_LOGGING=1
+	# Prevent inherited shells from forcing Electron to run as plain Node.js.
+	unset ELECTRON_RUN_AS_NODE
 
 	DISABLE_TEST_EXTENSION="--disable-extension=vscode.vscode-api-tests"
 	if [[ "$@" == *"--extensionTestsPath"* ]]; then
