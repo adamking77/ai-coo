@@ -447,6 +447,8 @@ export class DatabaseEditor extends EditorPane {
 			onOpenFullPage: rec => { void this.openRecordAsFullPage(rec.id); },
 			onCreateRelatedRecord: async (relationFieldId, targetDatabaseId, title, sourceRecordId) => this.createRelatedRecord(relationFieldId, targetDatabaseId, title, sourceRecordId),
 			onOpenRelatedRecord: async (databaseId, recordId, options) => this.openRelatedRecord(databaseId, recordId, options),
+			onUpdateRelatedRecord: async (databaseId, recordId, fieldId, value) => this.updateRelatedRecord(databaseId, recordId, fieldId, value),
+			onUpdateHeaderFields: async fieldIds => this.updateHeaderFields(fieldIds),
 			onClose: () => {
 				if (mode === 'fullpage') {
 					void this.openDatabaseInCurrentTab();
@@ -722,6 +724,35 @@ export class DatabaseEditor extends EditorPane {
 			await this.databaseService.saveDatabase(this.db, this.getDatabaseResource(this.inputResource.resource));
 		}
 		return newRecord.id;
+	}
+
+	private async updateRelatedRecord(databaseId: string, recordId: string, fieldId: string, value: string | number | boolean | string[] | null): Promise<void> {
+		const targetDb = this.workspaceDatabases.get(databaseId);
+		const targetUri = this.workspaceDatabaseUris.get(databaseId);
+		if (!targetDb || !targetUri) {
+			return;
+		}
+		const targetRecord = targetDb.records.find(record => record.id === recordId);
+		if (!targetRecord) {
+			return;
+		}
+		targetRecord[fieldId] = value;
+		const editedField = targetDb.schema.find(field => field.type === 'lastEditedAt');
+		if (editedField) {
+			targetRecord[editedField.id] = new Date().toISOString();
+		}
+		await this.databaseService.saveDatabase(targetDb, targetUri);
+		if (databaseId === this.db?.id) {
+			this.render();
+		}
+	}
+
+	private async updateHeaderFields(fieldIds: string[]): Promise<void> {
+		if (!this.db) {
+			return;
+		}
+		this.db.headerFieldIds = [...fieldIds];
+		await this.save();
 	}
 
 	private renderError(message: string): void {

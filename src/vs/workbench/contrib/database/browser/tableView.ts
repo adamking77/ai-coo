@@ -118,9 +118,43 @@ function openCellEditor(
 	onCommit: (value: string | number | boolean | string[] | null) => void,
 ): void {
 	if (field.type === 'createdAt' || field.type === 'lastEditedAt' || field.type === 'rollup' || field.type === 'formula') { return; }
-	clearNode(cell);
 	const val = record[field.id];
 
+	if ((field.type === 'select' || field.type === 'status') && (field.options?.length || field.type === 'status')) {
+		const options = field.type === 'status' ? (field.options ?? STATUS_OPTIONS) : (field.options ?? []);
+		showTableOptionPicker(cell, {
+			multi: false,
+			options: options.map((option, index) => ({
+				id: option,
+				label: option,
+				color: getFieldOptionColor(field, option) ?? OPTION_COLOR_PRESETS[index % OPTION_COLOR_PRESETS.length].value,
+			})),
+			selected: typeof val === 'string' && val ? [val] : [],
+			groupStatus: field.type === 'status',
+			onChange: selected => {
+				onCommit(selected[0] ?? null);
+			},
+			onClear: () => onCommit(null),
+		});
+		return;
+	}
+
+	if (field.type === 'multiselect' && field.options?.length) {
+		showTableOptionPicker(cell, {
+			multi: true,
+			options: field.options.map((option, index) => ({
+				id: option,
+				label: option,
+				color: getFieldOptionColor(field, option) ?? OPTION_COLOR_PRESETS[index % OPTION_COLOR_PRESETS.length].value,
+			})),
+			selected: Array.isArray(val) ? val.filter((item): item is string => typeof item === 'string') : [],
+			onChange: selected => onCommit(selected),
+			onClear: () => onCommit([]),
+		});
+		return;
+	}
+
+	clearNode(cell);
 	if (field.type === 'checkbox') {
 		const cb = append(cell, $('input')) as HTMLInputElement;
 		cb.type = 'checkbox';
@@ -128,46 +162,6 @@ function openCellEditor(
 		cb.checked = Boolean(val);
 		cb.focus();
 		cb.addEventListener('change', () => onCommit(cb.checked));
-		return;
-	}
-
-	if ((field.type === 'select' || field.type === 'status') && (field.options?.length || field.type === 'status')) {
-		const sel = append(cell, $('select.db-cell-editor')) as HTMLSelectElement;
-		append(sel, $('option', { value: '' }, '— None —'));
-		const options = field.type === 'status' ? (field.options ?? STATUS_OPTIONS) : (field.options ?? []);
-		for (const opt of options) {
-			const o = append(sel, $('option', { value: opt })) as HTMLOptionElement;
-			o.textContent = opt;
-			if (val === opt) { o.selected = true; }
-		}
-		sel.focus();
-		const commit = () => onCommit(sel.value || null);
-		sel.addEventListener('change', commit);
-		sel.addEventListener('blur', commit);
-		sel.addEventListener('keydown', e => {
-			if (e.key === 'Enter') { commit(); }
-			if (e.key === 'Escape') { onCommit(val ?? null); }
-		});
-		return;
-	}
-
-	if (field.type === 'multiselect' && field.options?.length) {
-		const selected = new Set<string>(Array.isArray(val) ? val : []);
-		const overlay = append(cell, $('div.db-multiselect-editor'));
-		for (const opt of field.options) {
-			const row = append(overlay, $('label.db-multiselect-row'));
-			const cb = append(row, $('input')) as HTMLInputElement;
-			cb.type = 'checkbox';
-			cb.checked = selected.has(opt);
-			cb.addEventListener('change', () => {
-				if (cb.checked) { selected.add(opt); } else { selected.delete(opt); }
-			});
-			const lbl = append(row, $('span'));
-			lbl.textContent = opt;
-		}
-		const doneBtn = append(overlay, $('button.db-btn.db-btn-primary'));
-		doneBtn.textContent = 'Done';
-		doneBtn.addEventListener('click', () => onCommit([...selected]));
 		return;
 	}
 
@@ -221,6 +215,176 @@ function openCellEditor(
 	});
 }
 
+interface TablePickerOption {
+	id: string;
+	label: string;
+	color?: string;
+}
+
+interface TablePickerOptions {
+	multi: boolean;
+	options: TablePickerOption[];
+	selected: string[];
+	onChange: (selected: string[]) => void;
+	onClear?: () => void;
+	groupStatus?: boolean;
+}
+
+function getStatusSection(label: string): 'To-do' | 'In progress' | 'Complete' {
+	const normalized = label.trim().toLowerCase();
+	if (normalized.includes('done') || normalized.includes('complete')) {
+		return 'Complete';
+	}
+	if (normalized.includes('progress') || normalized.includes('active') || normalized.includes('doing') || normalized.includes('diagnostic')) {
+		return 'In progress';
+	}
+	return 'To-do';
+}
+
+function showTableOptionPicker(anchor: HTMLElement, options: TablePickerOptions): void {
+	document.querySelector('.db-table-picker-panel')?.remove();
+
+	const panel = document.createElement('div');
+	panel.className = 'db-dropdown-panel db-record-picker-panel db-table-picker-panel';
+	document.body.appendChild(panel);
+
+	const selectedRow = append(panel, $('div.db-record-picker-selected'));
+	const list = append(panel, $('div.db-record-picker-list'));
+
+	const selected = new Set(options.selected);
+
+	const renderSelected = () => {
+		clearNode(selectedRow);
+		if (!selected.size) {
+			selectedRow.style.display = 'none';
+			return;
+		}
+		selectedRow.style.display = '';
+		const optionById = new Map(options.options.map(option => [option.id, option]));
+		for (const id of selected) {
+			const option = optionById.get(id);
+			if (!option) {
+				continue;
+			}
+			const chip = append(selectedRow, $('button.db-record-picker-selected-chip')) as HTMLButtonElement;
+			chip.type = 'button';
+			const chipLabel = append(chip, $('span.db-record-picker-selected-chip-label'));
+			chipLabel.textContent = option.label;
+			if (option.color) {
+				chipLabel.style.backgroundColor = option.color;
+				chipLabel.style.color = getReadableTextColor(option.color);
+			}
+			const remove = append(chip, $('span.db-record-picker-selected-chip-remove'));
+			remove.textContent = '×';
+			chip.addEventListener('click', event => {
+				event.preventDefault();
+				selected.delete(option.id);
+				options.onChange([...selected]);
+				renderSelected();
+				renderList();
+			});
+		}
+	};
+
+	const renderList = () => {
+		clearNode(list);
+		const filtered = options.options;
+		if (!filtered.length) {
+			const empty = append(list, $('div.db-panel-empty'));
+			empty.textContent = 'No matches';
+			return;
+		}
+
+		const grouped = new Map<string, TablePickerOption[]>();
+		if (options.groupStatus) {
+			for (const option of filtered) {
+				const section = getStatusSection(option.label);
+				const group = grouped.get(section) ?? [];
+				group.push(option);
+				grouped.set(section, group);
+			}
+		} else {
+			grouped.set('', filtered);
+		}
+
+		for (const [section, sectionOptions] of grouped) {
+			if (section) {
+				const heading = append(list, $('div.db-record-picker-section-title'));
+				heading.textContent = section;
+			}
+			for (const option of sectionOptions) {
+				const item = append(list, $('button.db-record-picker-item')) as HTMLButtonElement;
+				item.type = 'button';
+				const label = append(item, $('span.db-record-picker-label'));
+				label.textContent = option.label;
+				if (option.color) {
+					label.style.backgroundColor = option.color;
+					label.style.color = getReadableTextColor(option.color);
+					label.classList.add('db-record-picker-label--color');
+				}
+				const mark = append(item, $('span.db-record-picker-mark'));
+				mark.textContent = selected.has(option.id) ? '✓' : '';
+				item.addEventListener('click', () => {
+					if (options.multi) {
+						if (selected.has(option.id)) {
+							selected.delete(option.id);
+						} else {
+							selected.add(option.id);
+						}
+						options.onChange([...selected]);
+						renderSelected();
+						renderList();
+					} else {
+						options.onChange([option.id]);
+						close();
+					}
+				});
+			}
+		}
+	};
+
+	if (options.multi || options.onClear) {
+		const actions = append(panel, $('div.db-panel-add'));
+		const clearBtn = append(actions, $('button.db-btn')) as HTMLButtonElement;
+		clearBtn.textContent = 'Clear';
+		clearBtn.addEventListener('click', () => {
+			selected.clear();
+			if (options.onClear) {
+				options.onClear();
+			} else {
+				options.onChange([]);
+			}
+			renderSelected();
+			renderList();
+		});
+		if (options.multi) {
+			const doneBtn = append(actions, $('button.db-btn.db-btn-primary')) as HTMLButtonElement;
+			doneBtn.textContent = 'Done';
+			doneBtn.addEventListener('click', close);
+		}
+	}
+
+	const rect = anchor.getBoundingClientRect();
+	panel.style.top = `${rect.bottom + 4}px`;
+	panel.style.left = `${rect.left}px`;
+	renderSelected();
+	renderList();
+
+	setTimeout(() => {
+		const handler = (event: MouseEvent) => {
+			if (!panel.contains(event.target as Node) && event.target !== anchor) {
+				close();
+				document.removeEventListener('mousedown', handler);
+			}
+		};
+		document.addEventListener('mousedown', handler);
+	}, 0);
+
+	function close(): void {
+		panel.remove();
+	}
+}
+
 // ─── Main Render ─────────────────────────────────────────────────────────────
 
 export function renderTable(
@@ -255,16 +419,12 @@ export function renderTable(
 		const thInner = append(th, $('div.db-th-inner'));
 		const thLabel = append(thInner, $('span.db-th-label'));
 		thLabel.textContent = field.name;
-		if (field.type === 'select' || field.type === 'multiselect') {
-			thLabel.classList.add('db-th-label-action');
-			thLabel.title = 'Edit property options';
-			thLabel.addEventListener('click', (event) => {
-				event.stopPropagation();
-				showSelectPropertyEditor(thLabel, field, opts.onUpdateField);
-			});
-		}
-		const thType = append(thInner, $('span.db-field-type'));
-		thType.textContent = field.type;
+		thLabel.classList.add('db-th-label-action');
+		thLabel.title = 'Edit property';
+		thLabel.addEventListener('click', (event) => {
+			event.stopPropagation();
+			showPropertyMenu(thLabel, field, opts.onUpdateField);
+		});
 
 		// Column resize handle
 		const resizeHandle = append(th, $('div.db-col-resize-handle'));
@@ -450,6 +610,229 @@ const OPTION_COLOR_PRESETS: Array<{ label: string; value: string; swatch: string
 	{ label: 'Red', value: '#ef4444', swatch: '🔴' },
 ];
 
+function fieldTypeSupportsOptions(type: Field['type']): boolean {
+	return type === 'select' || type === 'multiselect' || type === 'status';
+}
+
+function normalizeFieldForType(field: Field, nextType: Field['type']): Field {
+	const nextField: Field = {
+		id: field.id,
+		name: field.name,
+		type: nextType,
+	};
+
+	if (fieldTypeSupportsOptions(nextType)) {
+		nextField.options = field.options?.length ? [...field.options] : (nextType === 'status' ? [...STATUS_OPTIONS] : []);
+		if (field.optionColors) {
+			nextField.optionColors = { ...field.optionColors };
+		}
+	}
+
+	if (nextType === 'relation') {
+		nextField.relation = field.relation ? { ...field.relation } : {};
+	}
+
+	if (nextType === 'rollup') {
+		nextField.rollup = field.rollup ? { ...field.rollup } : { relationFieldId: '', aggregation: 'count' };
+	}
+
+	if (nextType === 'formula') {
+		nextField.formula = field.formula ? { ...field.formula } : { expression: '' };
+	}
+
+	return nextField;
+}
+
+function showPropertyMenu(anchor: HTMLElement, field: Field, onSave: (field: Field) => void): void {
+	document.querySelector('.db-property-menu-panel')?.remove();
+
+	const panel = document.createElement('div');
+	panel.className = 'db-dropdown-panel db-property-menu-panel';
+	document.body.appendChild(panel);
+
+	const nameRow = append(panel, $('div.db-property-menu-name-row'));
+	const nameInput = append(nameRow, $('input.db-input.db-property-menu-name-input')) as HTMLInputElement;
+	nameInput.value = field.name;
+	nameInput.placeholder = 'Property name';
+
+	const typeRow = append(panel, $('div.db-property-menu-type-row'));
+	const typeLabel = append(typeRow, $('span.db-property-menu-type-label'));
+	typeLabel.textContent = 'Type';
+	const typeSelect = append(typeRow, $('select.db-select.db-property-menu-type-select')) as HTMLSelectElement;
+	for (const type of FIELD_TYPES) {
+		const option = append(typeSelect, $('option', { value: type })) as HTMLOptionElement;
+		option.textContent = type;
+		if (field.type === type) {
+			option.selected = true;
+		}
+	}
+
+	type OptionDraft = { name: string; color: string };
+	const createOptionDrafts = (fromField: Field): OptionDraft[] => {
+		const baseOptions = fromField.options ?? (fromField.type === 'status' ? STATUS_OPTIONS : []);
+		return baseOptions.map((name, index) => ({
+			name,
+			color: fromField.optionColors?.[name] ?? OPTION_COLOR_PRESETS[index % OPTION_COLOR_PRESETS.length].value,
+		}));
+	};
+
+	let drafts = createOptionDrafts(field);
+	const optionsWrap = append(panel, $('div.db-property-menu-options-wrap'));
+	const optionsTitle = append(optionsWrap, $('div.db-panel-section-title'));
+	optionsTitle.textContent = 'Options';
+	const optionsList = append(optionsWrap, $('div.db-property-option-list'));
+	const optionsActions = append(optionsWrap, $('div.db-panel-add'));
+	const addOptionBtn = append(optionsActions, $('button.db-btn')) as HTMLButtonElement;
+	addOptionBtn.textContent = '+ Add option';
+
+	let saveTimer: number | undefined;
+	const commit = () => onSave(draftField());
+	const scheduleSave = (immediate = false) => {
+		if (saveTimer !== undefined) {
+			window.clearTimeout(saveTimer);
+			saveTimer = undefined;
+		}
+		if (immediate) {
+			commit();
+			return;
+		}
+		saveTimer = window.setTimeout(() => {
+			saveTimer = undefined;
+			commit();
+		}, 160);
+	};
+
+	const close = () => {
+		if (saveTimer !== undefined) {
+			window.clearTimeout(saveTimer);
+			saveTimer = undefined;
+			commit();
+		}
+		panel.remove();
+	};
+
+	const renderOptions = () => {
+		clearNode(optionsList);
+		for (const draft of drafts) {
+			const row = append(optionsList, $('div.db-property-option-row'));
+			const nameField = append(row, $('input.db-input.db-property-option-name')) as HTMLInputElement;
+			nameField.value = draft.name;
+			nameField.placeholder = 'Option name';
+			nameField.addEventListener('input', () => {
+				draft.name = nameField.value;
+				scheduleSave();
+			});
+
+			const colorBtn = append(row, $('button.db-btn.db-property-color-btn')) as HTMLButtonElement;
+			const updateColorLabel = () => {
+				const preset = OPTION_COLOR_PRESETS.find(color => color.value.toLowerCase() === draft.color.toLowerCase()) ?? OPTION_COLOR_PRESETS[0];
+				colorBtn.textContent = preset.label;
+				colorBtn.style.backgroundColor = preset.value;
+				colorBtn.style.color = getReadableTextColor(preset.value);
+			};
+			updateColorLabel();
+			colorBtn.addEventListener('click', event => {
+				event.stopPropagation();
+				showPropertyColorMenu(panel, colorBtn, draft.color, nextColor => {
+					draft.color = nextColor;
+					updateColorLabel();
+					scheduleSave(true);
+				});
+			});
+
+			const removeBtn = append(row, $('button.db-icon-btn'));
+			removeBtn.textContent = '✕';
+			removeBtn.title = 'Remove option';
+			removeBtn.addEventListener('click', () => {
+				const index = drafts.indexOf(draft);
+				if (index >= 0) {
+					drafts.splice(index, 1);
+					renderOptions();
+					scheduleSave(true);
+				}
+			});
+		}
+	};
+
+	const syncOptionsVisibility = () => {
+		const supports = fieldTypeSupportsOptions(typeSelect.value as Field['type']);
+		optionsWrap.style.display = supports ? '' : 'none';
+	};
+
+	addOptionBtn.addEventListener('click', () => {
+		drafts.push({ name: '', color: OPTION_COLOR_PRESETS[drafts.length % OPTION_COLOR_PRESETS.length].value });
+		renderOptions();
+		const optionNameInputs = optionsList.querySelectorAll<HTMLInputElement>('.db-property-option-name');
+		optionNameInputs[optionNameInputs.length - 1]?.focus();
+		scheduleSave(true);
+	});
+
+	const draftField = (): Field => {
+		const nextType = typeSelect.value as Field['type'];
+		const nextName = nameInput.value.trim() || field.name;
+		const nextField = normalizeFieldForType({ ...field, name: nextName }, nextType);
+		if (fieldTypeSupportsOptions(nextType)) {
+			const options: string[] = [];
+			const optionColors: Record<string, string> = {};
+			for (const draft of drafts) {
+				const name = draft.name.trim();
+				if (!name || options.includes(name)) {
+					continue;
+				}
+				options.push(name);
+				optionColors[name] = draft.color;
+			}
+			nextField.options = options.length ? options : (nextType === 'status' ? [...STATUS_OPTIONS] : []);
+			nextField.optionColors = optionColors;
+		}
+		return nextField;
+	};
+
+	typeSelect.addEventListener('change', () => {
+		const nextType = typeSelect.value as Field['type'];
+		if (fieldTypeSupportsOptions(nextType) && drafts.length === 0) {
+			const temporaryField = normalizeFieldForType(field, nextType);
+			drafts = createOptionDrafts(temporaryField);
+		}
+		syncOptionsVisibility();
+		renderOptions();
+		scheduleSave(true);
+	});
+	nameInput.addEventListener('input', () => {
+		scheduleSave();
+	});
+
+	nameInput.addEventListener('keydown', event => {
+		if (event.key === 'Enter') {
+			event.preventDefault();
+			close();
+		}
+		if (event.key === 'Escape') {
+			event.preventDefault();
+			close();
+		}
+	});
+
+	const rect = anchor.getBoundingClientRect();
+	panel.style.top = `${rect.bottom + 4}px`;
+	panel.style.left = `${rect.left}px`;
+
+	nameInput.focus();
+	nameInput.select();
+	syncOptionsVisibility();
+	renderOptions();
+
+	setTimeout(() => {
+		const handler = (event: MouseEvent) => {
+			if (!panel.contains(event.target as Node) && event.target !== anchor) {
+				close();
+				document.removeEventListener('mousedown', handler);
+			}
+		};
+		document.addEventListener('mousedown', handler);
+	}, 0);
+}
+
 function showAddFieldForm(anchor: HTMLElement, opts: TableViewOptions): void {
 	const existing = document.querySelector('.db-add-field-form');
 	if (existing) { existing.remove(); return; }
@@ -501,106 +884,6 @@ function showAddFieldForm(anchor: HTMLElement, opts: TableViewOptions): void {
 	}, 0);
 }
 
-function showSelectPropertyEditor(anchor: HTMLElement, field: Field, onSave: (field: Field) => void): void {
-	if (field.type !== 'select' && field.type !== 'multiselect') { return; }
-	document.querySelector('.db-property-editor-panel')?.remove();
-
-	const panel = document.createElement('div');
-	panel.className = 'db-dropdown-panel db-property-editor-panel';
-	document.body.appendChild(panel);
-
-	const title = append(panel, $('div.db-panel-section-title'));
-	title.textContent = `${field.name} options`;
-
-	type OptionDraft = { name: string; color: string };
-	const drafts: OptionDraft[] = (field.options ?? []).map((name, index) => ({
-		name,
-		color: field.optionColors?.[name] ?? OPTION_COLOR_PRESETS[index % OPTION_COLOR_PRESETS.length].value,
-	}));
-
-	const list = append(panel, $('div.db-property-option-list'));
-	const actions = append(panel, $('div.db-panel-add'));
-
-	const addBtn = append(actions, $('button.db-btn')) as HTMLButtonElement;
-	addBtn.textContent = '+ Add option';
-	const saveBtn = append(actions, $('button.db-btn.db-btn-primary')) as HTMLButtonElement;
-	saveBtn.textContent = 'Save';
-
-	const render = () => {
-		clearNode(list);
-		for (const draft of drafts) {
-			const row = append(list, $('div.db-property-option-row'));
-			const nameInput = append(row, $('input.db-input.db-property-option-name')) as HTMLInputElement;
-			nameInput.value = draft.name;
-			nameInput.placeholder = 'Option name';
-			nameInput.addEventListener('input', () => { draft.name = nameInput.value; });
-
-			const colorBtn = append(row, $('button.db-btn.db-property-color-btn')) as HTMLButtonElement;
-			const updateColorLabel = () => {
-				const preset = OPTION_COLOR_PRESETS.find(color => color.value.toLowerCase() === draft.color.toLowerCase()) ?? OPTION_COLOR_PRESETS[0];
-				colorBtn.textContent = `${preset.swatch} ${preset.label}`;
-			};
-			updateColorLabel();
-			colorBtn.addEventListener('click', (event) => {
-				event.stopPropagation();
-				showPropertyColorMenu(panel, colorBtn, draft.color, nextColor => {
-					draft.color = nextColor;
-					updateColorLabel();
-				});
-			});
-
-			const removeBtn = append(row, $('button.db-icon-btn'));
-			removeBtn.textContent = '✕';
-			removeBtn.title = 'Remove option';
-			removeBtn.addEventListener('click', () => {
-				const index = drafts.indexOf(draft);
-				if (index >= 0) {
-					drafts.splice(index, 1);
-					render();
-				}
-			});
-		}
-	};
-
-	addBtn.addEventListener('click', () => {
-		drafts.push({ name: '', color: OPTION_COLOR_PRESETS[drafts.length % OPTION_COLOR_PRESETS.length].value });
-		render();
-		panel.querySelector<HTMLInputElement>('.db-property-option-name:last-of-type')?.focus();
-	});
-
-	saveBtn.addEventListener('click', () => {
-		const options: string[] = [];
-		const optionColors: Record<string, string> = {};
-		for (const draft of drafts) {
-			const name = draft.name.trim();
-			if (!name || options.includes(name)) {
-				continue;
-			}
-			options.push(name);
-			optionColors[name] = draft.color;
-		}
-		onSave({ ...field, options, optionColors });
-		close();
-	});
-
-	const rect = anchor.getBoundingClientRect();
-	panel.style.top = `${rect.bottom + 4}px`;
-	panel.style.left = `${rect.left}px`;
-
-	const close = () => panel.remove();
-	setTimeout(() => {
-		const handler = (e: MouseEvent) => {
-			if (!panel.contains(e.target as Node) && e.target !== anchor) {
-				close();
-				document.removeEventListener('mousedown', handler);
-			}
-		};
-		document.addEventListener('mousedown', handler);
-	}, 0);
-
-	render();
-}
-
 function showPropertyColorMenu(
 	hostPanel: HTMLElement,
 	anchor: HTMLElement,
@@ -615,7 +898,10 @@ function showPropertyColorMenu(
 
 	for (const color of OPTION_COLOR_PRESETS) {
 		const item = append(menu, $('div.db-context-menu-item.db-property-color-item'));
-		item.textContent = `${color.swatch} ${color.label}`;
+		const pill = append(item, $('span.db-property-color-pill'));
+		pill.textContent = color.label;
+		pill.style.backgroundColor = color.value;
+		pill.style.color = getReadableTextColor(color.value);
 		if (color.value.toLowerCase() === currentColor.toLowerCase()) {
 			item.classList.add('db-property-color-item--active');
 		}

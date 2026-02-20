@@ -85,6 +85,7 @@ export interface Database {
 	schema: Field[];
 	views: DBView[];
 	records: DBRecord[];
+	headerFieldIds?: string[];
 }
 
 // ─── Utility Functions ───────────────────────────────────────────────────────

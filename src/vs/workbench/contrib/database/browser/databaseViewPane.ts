@@ -121,17 +121,17 @@ export class DatabaseViewPane extends ViewPane {
 
 		const newBtn = append(actions, $('button.db-icon-btn'));
 		newBtn.title = 'New Database';
-		newBtn.textContent = '+';
+		newBtn.classList.add('codicon', 'codicon-add');
 		newBtn.addEventListener('click', () => this._createDatabase());
 
 		const openBtn = append(actions, $('button.db-icon-btn'));
 		openBtn.title = 'Open .db.json file';
-		openBtn.textContent = '📂';
+		openBtn.classList.add('codicon', 'codicon-folder-opened');
 		openBtn.addEventListener('click', () => this._openFile());
 
 		const refreshBtn = append(actions, $('button.db-icon-btn'));
 		refreshBtn.title = 'Refresh';
-		refreshBtn.textContent = '↻';
+		refreshBtn.classList.add('codicon', 'codicon-refresh');
 		refreshBtn.addEventListener('click', () => this._refresh());
 
 		this.dbListEl = append(this.leftPanel, $('div.db-list'));
@@ -152,8 +152,7 @@ export class DatabaseViewPane extends ViewPane {
 				item.classList.add('db-list-item--active');
 			}
 
-			const icon = append(item, $('span.db-list-icon'));
-			icon.textContent = '🗃';
+			append(item, $('span.db-list-icon.codicon.codicon-database'));
 
 			const name = append(item, $('span.db-list-name'));
 			name.textContent = db.name;
@@ -166,7 +165,7 @@ export class DatabaseViewPane extends ViewPane {
 			count.textContent = String(db.records.length);
 
 			const menuBtn = append(item, $('button.db-list-menu-btn'));
-			menuBtn.textContent = '⋯';
+			menuBtn.classList.add('codicon', 'codicon-ellipsis');
 			menuBtn.title = 'Options';
 			menuBtn.addEventListener('click', (e) => {
 				e.stopPropagation();
@@ -621,6 +620,8 @@ export class DatabaseViewPane extends ViewPane {
 			onDuplicate: (rec) => this._duplicateRecord(rec),
 			onCreateRelatedRecord: async (relationFieldId, targetDatabaseId, title, sourceRecordId) => this._createRelatedRecord(relationFieldId, targetDatabaseId, title, sourceRecordId),
 			onOpenRelatedRecord: async (databaseId, recordId, options) => this._openRelatedRecord(databaseId, recordId, options),
+			onUpdateRelatedRecord: async (databaseId, recordId, fieldId, value) => this._updateRelatedRecord(databaseId, recordId, fieldId, value),
+			onUpdateHeaderFields: async fieldIds => this._updateHeaderFields(fieldIds),
 			onClose: () => { /* nothing */ },
 		};
 		showRecordEditor(this.rightPanel, record, db, callbacks, this._resolveDatabase);
@@ -845,6 +846,34 @@ export class DatabaseViewPane extends ViewPane {
 			await this.databaseService.saveDatabase(this.selectedDb, this.selectedUri);
 		}
 		return newRecord.id;
+	}
+
+	private async _updateRelatedRecord(databaseId: string, recordId: string, fieldId: string, value: string | number | boolean | string[] | null): Promise<void> {
+		const targetEntry = this.databases.find(entry => entry.db.id === databaseId);
+		if (!targetEntry) {
+			return;
+		}
+		const targetRecord = targetEntry.db.records.find(record => record.id === recordId);
+		if (!targetRecord) {
+			return;
+		}
+		targetRecord[fieldId] = value;
+		const editedField = targetEntry.db.schema.find(field => field.type === 'lastEditedAt');
+		if (editedField) {
+			targetRecord[editedField.id] = new Date().toISOString();
+		}
+		await this.databaseService.saveDatabase(targetEntry.db, targetEntry.uri);
+		if (this.selectedDb?.id === databaseId) {
+			this._renderContent();
+		}
+	}
+
+	private async _updateHeaderFields(fieldIds: string[]): Promise<void> {
+		if (!this.selectedDb) {
+			return;
+		}
+		this.selectedDb.headerFieldIds = [...fieldIds];
+		this._save();
 	}
 
 	private readonly _resolveDatabase = (databaseId: string): Database | undefined => {
