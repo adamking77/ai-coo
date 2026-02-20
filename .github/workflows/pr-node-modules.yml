@@ -1,9 +1,9 @@
 name: Code OSS (node_modules)
 
 on:
-  push:
-    branches:
-      - main
+  # Upstream workflow uses paid/enterprise runner pools (including macOS xlarge).
+  # Keep this workflow manual in this fork to avoid billing-locked failures on push.
+  workflow_dispatch:
 
 permissions: {}
 
