@@ -1246,13 +1246,13 @@ const CSS = `
 /* ─── Dropdown Panels (Sort/Filter/Fields) ───────────────────── */
 .db-dropdown-panel {
 	position: fixed;
-	background: var(--vscode-menu-background, var(--db-overlay-bg, var(--vscode-editorWidget-background, var(--vscode-editor-background, #ffffff)))) !important;
-	background-color: var(--vscode-menu-background, var(--db-overlay-bg, var(--vscode-editorWidget-background, var(--vscode-editor-background, #ffffff)))) !important;
-	color: var(--vscode-menu-foreground, var(--db-overlay-fg, var(--vscode-foreground, #1f1f1f))) !important;
+	background: var(--db-overlay-bg, var(--vscode-menu-background, var(--vscode-editorWidget-background, var(--vscode-editor-background, #ffffff)))) !important;
+	background-color: var(--db-overlay-bg, var(--vscode-menu-background, var(--vscode-editorWidget-background, var(--vscode-editor-background, #ffffff)))) !important;
+	color: var(--db-overlay-fg, var(--vscode-menu-foreground, var(--vscode-foreground, #1f1f1f))) !important;
 	font-family: var(--vscode-font-family, var(--vscode-editor-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif));
 	font-size: var(--vscode-font-size);
 	line-height: 1.4;
-	border: 1px solid var(--vscode-menu-border, var(--db-overlay-border, var(--vscode-widget-border, rgba(0, 0, 0, 0.16))));
+	border: 1px solid var(--db-overlay-border, var(--vscode-menu-border, var(--vscode-widget-border, rgba(0, 0, 0, 0.16))));
 	border-radius: 4px;
 	min-width: 260px;
 	max-width: 400px;
@@ -1290,16 +1290,16 @@ const CSS = `
 .db-dropdown-panel .db-select,
 .db-dropdown-panel .db-input,
 .db-dropdown-panel .db-cell-editor {
-	background: var(--vscode-input-background, var(--db-overlay-input-bg, var(--vscode-editorWidget-background, #ffffff))) !important;
-	background-color: var(--vscode-input-background, var(--db-overlay-input-bg, var(--vscode-editorWidget-background, #ffffff))) !important;
-	color: var(--vscode-input-foreground, var(--db-overlay-input-fg, var(--vscode-foreground, #1f1f1f))) !important;
-	-webkit-text-fill-color: var(--vscode-input-foreground, var(--db-overlay-input-fg, var(--vscode-foreground, #1f1f1f))) !important;
-	border-color: var(--vscode-input-border, var(--db-overlay-border, var(--vscode-widget-border, rgba(0, 0, 0, 0.16)))) !important;
+	background: var(--db-overlay-input-bg, var(--vscode-input-background, var(--vscode-editorWidget-background, #ffffff))) !important;
+	background-color: var(--db-overlay-input-bg, var(--vscode-input-background, var(--vscode-editorWidget-background, #ffffff))) !important;
+	color: var(--db-overlay-input-fg, var(--vscode-input-foreground, var(--vscode-foreground, #1f1f1f))) !important;
+	-webkit-text-fill-color: var(--db-overlay-input-fg, var(--vscode-input-foreground, var(--vscode-foreground, #1f1f1f))) !important;
+	border-color: var(--db-overlay-border, var(--vscode-input-border, var(--vscode-widget-border, rgba(0, 0, 0, 0.16)))) !important;
 }
 .db-dropdown-panel .db-select option,
 .db-dropdown-panel .db-cell-editor option {
-	background: var(--vscode-menu-background, var(--db-overlay-bg, var(--vscode-editorWidget-background, #ffffff))) !important;
-	color: var(--vscode-menu-foreground, var(--db-overlay-fg, var(--vscode-foreground, #1f1f1f))) !important;
+	background: var(--db-overlay-bg, var(--vscode-menu-background, var(--vscode-editorWidget-background, #ffffff))) !important;
+	color: var(--db-overlay-fg, var(--vscode-menu-foreground, var(--vscode-foreground, #1f1f1f))) !important;
 }
 .db-panel-empty {
 	padding: 8px 0;
@@ -1327,13 +1327,13 @@ const CSS = `
 /* ─── Context Menu ───────────────────────────────────────────── */
 .db-context-menu {
 	position: fixed;
-	background: var(--vscode-menu-background, var(--db-overlay-bg, var(--vscode-editorWidget-background, var(--vscode-editor-background, #ffffff)))) !important;
-	background-color: var(--vscode-menu-background, var(--db-overlay-bg, var(--vscode-editorWidget-background, var(--vscode-editor-background, #ffffff)))) !important;
-	color: var(--vscode-menu-foreground, var(--db-overlay-fg, var(--vscode-foreground, #1f1f1f))) !important;
+	background: var(--db-overlay-bg, var(--vscode-menu-background, var(--vscode-editorWidget-background, var(--vscode-editor-background, #ffffff)))) !important;
+	background-color: var(--db-overlay-bg, var(--vscode-menu-background, var(--vscode-editorWidget-background, var(--vscode-editor-background, #ffffff)))) !important;
+	color: var(--db-overlay-fg, var(--vscode-menu-foreground, var(--vscode-foreground, #1f1f1f))) !important;
 	font-family: var(--vscode-font-family, var(--vscode-editor-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif));
 	font-size: var(--vscode-font-size);
 	line-height: 1.4;
-	border: 1px solid var(--vscode-menu-border, var(--db-overlay-border, var(--vscode-widget-border, rgba(0, 0, 0, 0.16))));
+	border: 1px solid var(--db-overlay-border, var(--vscode-menu-border, var(--vscode-widget-border, rgba(0, 0, 0, 0.16))));
 	border-radius: 4px;
 	min-width: 140px;
 	box-shadow: 0 4px 12px rgba(0,0,0,0.25);
@@ -1356,8 +1356,8 @@ const CSS = `
 	padding: 6px 12px;
 	font-size: 12px;
 	cursor: pointer;
-	color: var(--vscode-menu-foreground, var(--db-overlay-fg, var(--vscode-foreground, #1f1f1f))) !important;
-	-webkit-text-fill-color: var(--vscode-menu-foreground, var(--db-overlay-fg, var(--vscode-foreground, #1f1f1f))) !important;
+	color: var(--db-overlay-fg, var(--vscode-menu-foreground, var(--vscode-foreground, #1f1f1f))) !important;
+	-webkit-text-fill-color: var(--db-overlay-fg, var(--vscode-menu-foreground, var(--vscode-foreground, #1f1f1f))) !important;
 }
 .db-context-menu-item:hover { background: var(--vscode-list-hoverBackground); }
 .db-context-menu-item--danger { color: var(--vscode-errorForeground); }
