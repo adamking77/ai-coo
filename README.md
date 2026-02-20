@@ -21,6 +21,28 @@ npm ci
 
 Node `22.22.0+` is required.
 
+## One-Command Launcher (Recommended)
+
+Use the launcher script to run the app with isolated data/extensions:
+
+```bash
+./scripts/launch-ai-coo.sh
+```
+
+What it does:
+- uses the repo Node version (via `nvm` if available)
+- installs dependencies if missing
+- compiles the app
+- launches with:
+  - `--user-data-dir ~/.ai-coo-data`
+  - `--extensions-dir ~/.ai-coo-extensions`
+
+Fast launch (skip compile):
+
+```bash
+./scripts/launch-ai-coo.sh --no-compile
+```
+
 ## Run As Installed Mac App
 
 After first build, you can run this like a normal desktop app:

@@ -35,16 +35,13 @@ node -v
 ## 3) Install Dependencies and Launch
 
 ```bash
-npm ci
-./scripts/code.sh
+./scripts/launch-ai-coo.sh
 ```
 
-If launch fails:
+Fast launch (skip compile):
 
 ```bash
-node -v
-npm ci
-./scripts/code.sh
+./scripts/launch-ai-coo.sh --no-compile
 ```
 
 ## 4) How Database Storage Works
