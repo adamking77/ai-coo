@@ -7,6 +7,29 @@ import { $, append, clearNode } from '../../../../base/browser/dom.js';
 import { Database, DatabaseResolver, DBRecord, Field, DBView, getVisibleFields, applySorts, applyFilters, getStatusColor, STATUS_OPTIONS, getFieldValue, getRecordTitle, getRelationTargetDatabase, getFieldOptionColor, getReadableTextColor } from '../common/database.js';
 import { appendDatabaseOverlay } from './overlayHost.js';
 
+function enableDatePickerOnInteraction(input: HTMLInputElement): void {
+	const openPicker = () => {
+		const maybePicker = input as HTMLInputElement & { showPicker?: () => void };
+		if (typeof maybePicker.showPicker !== 'function') {
+			return;
+		}
+		try {
+			maybePicker.showPicker();
+		} catch {
+			// Native picker can reject when not triggered by a direct user gesture.
+		}
+	};
+
+	input.addEventListener('focus', openPicker);
+	input.addEventListener('click', openPicker);
+	input.addEventListener('keydown', event => {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			openPicker();
+		}
+	});
+}
+
 export interface TableViewOptions {
 	onRecordClick: (record: DBRecord) => void;
 	onCellEdit: (recordId: string, fieldId: string, value: string | number | boolean | string[] | null) => void;
@@ -197,6 +220,9 @@ function openCellEditor(
 
 	const input = append(cell, $('input.db-cell-editor')) as HTMLInputElement;
 	input.type = inputType;
+	if (field.type === 'date') {
+		enableDatePickerOnInteraction(input);
+	}
 	input.value = val != null ? String(val) : '';
 	input.focus();
 	input.select();

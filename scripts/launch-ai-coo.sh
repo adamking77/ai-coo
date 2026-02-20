@@ -89,10 +89,16 @@ launch_app() {
 	echo "Extensions: $extensions_dir"
 
 	cd "$ROOT"
-	exec ./scripts/code.sh \
-		--user-data-dir "$user_data_dir" \
-		--extensions-dir "$extensions_dir" \
-		"${LAUNCH_ARGS[@]}"
+	if [[ "${#LAUNCH_ARGS[@]}" -gt 0 ]]; then
+		exec ./scripts/code.sh \
+			--user-data-dir "$user_data_dir" \
+			--extensions-dir "$extensions_dir" \
+			"${LAUNCH_ARGS[@]}"
+	else
+		exec ./scripts/code.sh \
+			--user-data-dir "$user_data_dir" \
+			--extensions-dir "$extensions_dir"
+	fi
 }
 
 use_repo_node_version_if_possible

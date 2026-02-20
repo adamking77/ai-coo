@@ -23,6 +23,29 @@ type PickerOption = { id: string; label: string; color?: string };
 
 let lastPanelWidth = 520;
 
+function enableDatePickerOnInteraction(input: HTMLInputElement): void {
+	const openPicker = () => {
+		const maybePicker = input as HTMLInputElement & { showPicker?: () => void };
+		if (typeof maybePicker.showPicker !== 'function') {
+			return;
+		}
+		try {
+			maybePicker.showPicker();
+		} catch {
+			// Native picker can reject when not triggered by a direct user gesture.
+		}
+	};
+
+	input.addEventListener('focus', openPicker);
+	input.addEventListener('click', openPicker);
+	input.addEventListener('keydown', event => {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			openPicker();
+		}
+	});
+}
+
 export function showRecordEditor(
 	container: HTMLElement,
 	record: DBRecord,
@@ -504,6 +527,9 @@ function renderPropertyEditor(
 
 	const input = append(container, $('input.db-input')) as HTMLInputElement;
 	input.type = inputType;
+	if (field.type === 'date') {
+		enableDatePickerOnInteraction(input);
+	}
 	input.value = value != null ? String(value) : '';
 	input.addEventListener('input', () => {
 		working[field.id] = field.type === 'number' && input.value ? Number(input.value) : (input.value || null);
@@ -1033,6 +1059,22 @@ function renderRelatedTasksSection(
 			return value == null ? '' : String(value);
 		};
 
+		const valueAsDateInput = (value: string | number | boolean | string[] | null | undefined): string => {
+			if (typeof value !== 'string') {
+				return '';
+			}
+			const trimmed = value.trim();
+			if (!trimmed) {
+				return '';
+			}
+			const isoPrefix = /^(\d{4}-\d{2}-\d{2})/.exec(trimmed);
+			if (isoPrefix?.[1]) {
+				return isoPrefix[1];
+			}
+			const parsed = new Date(trimmed);
+			return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString().slice(0, 10);
+		};
+
 			const renderTable = () => {
 				clearNode(tableWrap);
 				const visibleFields = defaultFieldOrder
@@ -1080,46 +1122,70 @@ function renderRelatedTasksSection(
 				th.textContent = field.name;
 			}
 
-			const tbody = append(table, $('tbody'));
-			for (const taskRecord of records) {
-				const row = append(tbody, $('tr.db-related-task-table-row'));
-				if (callbacks.onOpenRelatedRecord) {
-					row.addEventListener('click', event => {
+				const tbody = append(table, $('tbody'));
+				for (const taskRecord of records) {
+					const row = append(tbody, $('tr.db-related-task-table-row'));
+					if (callbacks.onOpenRelatedRecord) {
+						row.addEventListener('click', event => {
 						const mouse = event as MouseEvent;
 						void callbacks.onOpenRelatedRecord?.(targetDb.id, taskRecord.id, {
 							newTab: Boolean(mouse.metaKey || mouse.ctrlKey),
+							});
 						});
-					});
-				}
-				for (const field of visibleFields) {
-					const td = append(row, $('td'));
-					const value = taskRecord[field.id];
-					if ((field.type === 'status' || field.type === 'select') && callbacks.onUpdateRelatedRecord) {
-						const button = append(td, $('button.db-related-task-pill-btn')) as HTMLButtonElement;
-						button.type = 'button';
-						button.addEventListener('click', event => {
-							event.preventDefault();
-							event.stopPropagation();
-							const options = (field.type === 'status' ? (field.options ?? STATUS_OPTIONS) : (field.options ?? []))
-								.map(option => ({
+					}
+					for (const field of visibleFields) {
+						const td = append(row, $('td'));
+						const value = taskRecord[field.id];
+						const commitRelatedValue = (nextValue: string | number | boolean | string[] | null) => {
+							taskRecord[field.id] = nextValue;
+							void callbacks.onUpdateRelatedRecord?.(targetDb.id, taskRecord.id, field.id, nextValue);
+							renderTable();
+						};
+						const blockRowOpen = (element: HTMLElement) => {
+							const stop = (event: Event) => {
+								event.stopPropagation();
+							};
+							element.addEventListener('mousedown', stop);
+							element.addEventListener('click', stop);
+							element.addEventListener('dblclick', stop);
+							element.addEventListener('keydown', stop);
+						};
+
+						if (field.type === 'date' && callbacks.onUpdateRelatedRecord) {
+							const input = append(td, $('input.db-input.db-related-task-date-input')) as HTMLInputElement;
+							input.type = 'date';
+							enableDatePickerOnInteraction(input);
+							input.value = valueAsDateInput(value);
+							blockRowOpen(input);
+							input.addEventListener('change', () => {
+								commitRelatedValue(input.value ? input.value : null);
+							});
+							continue;
+						}
+						if ((field.type === 'status' || field.type === 'select') && callbacks.onUpdateRelatedRecord) {
+							const button = append(td, $('button.db-related-task-pill-btn')) as HTMLButtonElement;
+							button.type = 'button';
+							blockRowOpen(button);
+							button.addEventListener('click', event => {
+								event.preventDefault();
+								event.stopPropagation();
+								const options = (field.type === 'status' ? (field.options ?? STATUS_OPTIONS) : (field.options ?? []))
+									.map(option => ({
 									id: option,
 									label: option,
 									color: field.type === 'status' ? getStatusColor(option) : getFieldOptionColor(field, option),
 								}));
-							showOptionPicker(button, {
-								multi: false,
-								options,
-								selected: typeof value === 'string' && value ? [value] : [],
-								groupStatus: field.type === 'status',
-								onChange: selected => {
-									const nextValue = selected[0] ?? null;
-									taskRecord[field.id] = nextValue;
-									void callbacks.onUpdateRelatedRecord?.(targetDb.id, taskRecord.id, field.id, nextValue);
-									renderTable();
-								},
+								showOptionPicker(button, {
+									multi: false,
+									options,
+									selected: typeof value === 'string' && value ? [value] : [],
+									groupStatus: field.type === 'status',
+									onChange: selected => {
+										commitRelatedValue(selected[0] ?? null);
+									},
+								});
 							});
-						});
-						if (typeof value === 'string' && value) {
+							if (typeof value === 'string' && value) {
 							const pill = append(button, $('span.db-select-badge'));
 							pill.textContent = value;
 							const bg = field.type === 'status' ? getStatusColor(value) : getFieldOptionColor(field, value);
@@ -1128,35 +1194,145 @@ function renderRelatedTasksSection(
 						} else {
 							const empty = append(button, $('span.db-select-badge.db-select-badge--empty'));
 							empty.textContent = 'Set';
+							}
+							continue;
 						}
-						continue;
-					}
 
-					if (field.type === 'multiselect' && Array.isArray(value) && value.length) {
-						for (const option of value) {
-							const pill = append(td, $('span.db-select-badge'));
-							pill.textContent = option;
-							const bg = getFieldOptionColor(field, option);
-							pill.style.backgroundColor = bg;
-							pill.style.color = getReadableTextColor(bg);
+						if (field.type === 'multiselect' && callbacks.onUpdateRelatedRecord) {
+							const button = append(td, $('button.db-related-task-pill-btn')) as HTMLButtonElement;
+							button.type = 'button';
+							blockRowOpen(button);
+							button.addEventListener('click', event => {
+								event.preventDefault();
+								event.stopPropagation();
+								showOptionPicker(button, {
+									multi: true,
+									options: (field.options ?? []).map(option => ({
+										id: option,
+										label: option,
+										color: getFieldOptionColor(field, option),
+									})),
+									selected: Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [],
+									onChange: selected => {
+										commitRelatedValue(selected);
+									},
+								});
+							});
+							if (Array.isArray(value) && value.length) {
+								for (const option of value) {
+									const pill = append(button, $('span.db-select-badge'));
+									pill.textContent = option;
+									const bg = getFieldOptionColor(field, option);
+									pill.style.backgroundColor = bg;
+									pill.style.color = getReadableTextColor(bg);
+								}
+							} else {
+								const empty = append(button, $('span.db-select-badge.db-select-badge--empty'));
+								empty.textContent = 'Set';
+							}
+							continue;
 						}
-						continue;
-					}
 
-					if (field.type === 'relation' && Array.isArray(value)) {
-						const relationText = append(td, $('span.db-related-task-cell-text'));
-						relationText.textContent = value.length ? `${value.length} linked` : '—';
-						continue;
-					}
+						if (field.type === 'relation' && callbacks.onUpdateRelatedRecord) {
+							const button = append(td, $('button.db-related-task-pill-btn')) as HTMLButtonElement;
+							button.type = 'button';
+							blockRowOpen(button);
+							button.addEventListener('click', event => {
+								event.preventDefault();
+								event.stopPropagation();
+								const relationTargetDb = getRelationTargetDatabase(targetDb, field, resolveDatabase);
+								const options = relationTargetDb.records
+									.filter(candidate => !(relationTargetDb.id === targetDb.id && candidate.id === taskRecord.id))
+									.map(candidate => ({
+										id: candidate.id,
+										label: getRecordTitle(candidate, relationTargetDb.schema),
+									}));
+								showOptionPicker(button, {
+									multi: true,
+									options,
+									selected: Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [],
+									showSearch: true,
+									onChange: selected => {
+										commitRelatedValue(selected);
+									},
+								});
+							});
+							if (Array.isArray(value) && value.length) {
+								const relationTargetDb = getRelationTargetDatabase(targetDb, field, resolveDatabase);
+								const labels = value
+									.map(linkedId => relationTargetDb.records.find(candidate => candidate.id === linkedId))
+									.filter((record): record is DBRecord => Boolean(record))
+									.map(record => getRecordTitle(record, relationTargetDb.schema));
+								if (labels.length) {
+									for (const labelValue of labels.slice(0, 2)) {
+										const badge = append(button, $('span.db-select-badge'));
+										badge.textContent = labelValue;
+									}
+									if (labels.length > 2) {
+										const more = append(button, $('span.db-select-badge'));
+										more.textContent = `+${labels.length - 2}`;
+									}
+								} else {
+									const relationText = append(button, $('span.db-select-badge'));
+									relationText.textContent = `${value.length} linked`;
+								}
+							} else {
+								const empty = append(button, $('span.db-select-badge.db-select-badge--empty'));
+								empty.textContent = 'Set';
+							}
+							continue;
+						}
 
-					if (field.type === 'checkbox') {
-						const checkbox = append(td, $('span.db-related-task-cell-text'));
-						checkbox.textContent = value ? '✓' : '—';
-						continue;
-					}
+						if (field.type === 'checkbox' && callbacks.onUpdateRelatedRecord) {
+							const checkbox = append(td, $('input.db-input-check')) as HTMLInputElement;
+							checkbox.type = 'checkbox';
+							checkbox.checked = Boolean(value);
+							blockRowOpen(checkbox);
+							checkbox.addEventListener('change', () => {
+								commitRelatedValue(checkbox.checked);
+							});
+							continue;
+						}
 
-					if (field.id === titleField?.id) {
-						const title = append(td, $('span.db-related-task-cell-title'));
+						if ((field.type === 'text' || field.type === 'number' || field.type === 'url' || field.type === 'email' || field.type === 'phone') && callbacks.onUpdateRelatedRecord) {
+							const input = append(td, $('input.db-input.db-related-task-cell-input')) as HTMLInputElement;
+							input.type =
+								field.type === 'number' ? 'number' :
+								field.type === 'url' ? 'url' :
+								field.type === 'email' ? 'email' :
+								field.type === 'phone' ? 'tel' : 'text';
+							input.value = valueAsText(value);
+							blockRowOpen(input);
+							const original = input.value;
+								const commit = () => {
+									if (field.type === 'number') {
+										const parsed = Number(input.value);
+										commitRelatedValue(input.value.trim() === '' || !Number.isFinite(parsed) ? null : parsed);
+										return;
+									}
+									commitRelatedValue(input.value.trim() ? input.value.trim() : null);
+								};
+							input.addEventListener('blur', () => {
+								if (input.value !== original) {
+									commit();
+								}
+							});
+							input.addEventListener('keydown', event => {
+								if (event.key === 'Enter') {
+									event.preventDefault();
+									input.blur();
+								}
+								if (event.key === 'Escape') {
+									event.preventDefault();
+									input.value = original;
+									input.blur();
+								}
+							});
+							continue;
+						}
+
+						if (field.id === titleField?.id) {
+							const title = append(td, $('span.db-related-task-cell-title'));
 						title.textContent = getRecordTitle(taskRecord, targetDb.schema);
 						continue;
 					}

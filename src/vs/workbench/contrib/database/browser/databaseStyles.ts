@@ -254,6 +254,13 @@ const CSS = `
 	outline-offset: 0;
 }
 
+/* Let native date picker follow active workbench theme */
+.db-input[type="date"],
+.db-cell-editor[type="date"],
+.db-related-task-date-input {
+	color-scheme: light dark;
+}
+
 /* Ensure native dropdown popups remain legible across themes */
 .db-select option,
 .db-cell-editor option,
@@ -995,9 +1002,27 @@ const CSS = `
 	border: none;
 	padding: 0;
 	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 4px;
+	min-height: 22px;
 }
 .db-related-task-pill-btn .db-select-badge {
 	margin-right: 0;
+}
+.db-related-task-cell-input {
+	width: 100%;
+	min-width: 110px;
+	height: 26px;
+	box-sizing: border-box;
+}
+.db-related-task-date-input {
+	width: 140px;
+	height: 26px;
+	padding: 2px 8px;
+	font-size: 12px;
+	border-radius: 6px;
 }
 .db-related-task-inline-create {
 	padding: 8px;
@@ -1392,6 +1417,15 @@ const CSS = `
 	border-color: var(--vscode-input-border, var(--vscode-widget-border, rgba(0, 0, 0, 0.2))) !important;
 }
 
+.monaco-workbench.vs .db-input[type="date"],
+.monaco-workbench.vs .db-cell-editor[type="date"],
+.monaco-workbench.vs .db-related-task-date-input,
+.monaco-workbench.hc-light .db-input[type="date"],
+.monaco-workbench.hc-light .db-cell-editor[type="date"],
+.monaco-workbench.hc-light .db-related-task-date-input {
+	color-scheme: light;
+}
+
 .monaco-workbench.vs .db-dropdown-panel .db-select option,
 .monaco-workbench.vs .db-dropdown-panel .db-cell-editor option,
 .monaco-workbench.hc-light .db-dropdown-panel .db-select option,
@@ -1408,6 +1442,15 @@ const CSS = `
 	background-color: var(--vscode-editorWidget-background, var(--vscode-editor-background, #1e1e1e)) !important;
 	color: var(--vscode-editorWidget-foreground, var(--vscode-foreground, #cccccc)) !important;
 	border-color: var(--vscode-widget-border, rgba(128, 128, 128, 0.35)) !important;
+}
+
+.monaco-workbench.vs-dark .db-input[type="date"],
+.monaco-workbench.vs-dark .db-cell-editor[type="date"],
+.monaco-workbench.vs-dark .db-related-task-date-input,
+.monaco-workbench.hc-black .db-input[type="date"],
+.monaco-workbench.hc-black .db-cell-editor[type="date"],
+.monaco-workbench.hc-black .db-related-task-date-input {
+	color-scheme: dark;
 }
 
 /* ─── Database List Additions ────────────────────────────────── */
