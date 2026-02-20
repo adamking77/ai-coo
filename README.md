@@ -1,13 +1,14 @@
 # AI COO App (GenZen Editor)
 
-A custom VS Code fork built as an operational command center with Notion-style databases inside the editor itself.
+A custom VS Code fork built as an operational command center with Notion-style databases inside the editor.
 
-This repo is based on `microsoft/vscode` and includes a native database system for:
-- table + kanban + list + gallery + calendar views
-- select/multi-select properties with colored pills
-- relations between databases
-- full record page editing in the main editor
-- theme-aware UI for database controls and popovers
+## What You Get
+
+- Native database editor in the main editor area
+- Table, Kanban, List, Gallery, and Calendar views
+- Select and multi-select properties with colored pills
+- Record pages, relations, and linked database workflows
+- Theme-aware database UI controls
 
 ## Quick Start (macOS)
 
@@ -18,52 +19,59 @@ npm ci
 ./scripts/code.sh
 ```
 
-If `nvm` is not installed, install Node directly and use Node `22.22.0+`.
+Node `22.22.0+` is required.
 
-## Friend Tester Guide
+## Tester Setup
 
-For non-technical setup, troubleshooting, and DB connection instructions:
+Full setup guide:
 
-- `docs/FRIEND-TESTER-SETUP.md`
+- `docs/TESTER-SETUP.md`
 
-That guide includes:
-- download/launch steps
-- Supabase connection (current built-in push sync)
-- SQLite usage path (current practical approach)
+That guide covers:
+- local install and launch
+- Supabase connection
+- SQLite setup path
 
-## Database Storage Model
+## SQLite Setup (Current)
 
-Primary storage is local workspace files:
-- `*.db.json` for structured databases
-- standard workspace files for docs/code
+SQLite is currently a companion workflow, not the native storage engine.
 
-Databases open in the main editor and are designed to feel native to the app, not like an extension panel.
+Native storage remains local `*.db.json` files.
 
-## Supabase Support (Current)
+To use SQLite today:
 
-Supabase sync is currently best-effort push on save via environment variables:
-- `GENZEN_SUPABASE_URL`
-- `GENZEN_SUPABASE_ANON_KEY`
-- `GENZEN_SUPABASE_TABLE` (default: `database_documents`)
+1. Export a database view to CSV from the app.
+2. Import CSV into a local SQLite file.
 
-Local `.db.json` files remain source-of-truth.
+Example:
 
-## SQLite Support (Current)
+```bash
+sqlite3 ai-coo-test.db
+```
 
-SQLite is not yet a native backend adapter for the database engine.
+Then in the SQLite prompt:
 
-Current recommended use:
-- run operational data in `.db.json`
-- export/import CSV for SQLite workflows when needed
+```sql
+.mode csv
+.import /absolute/path/projects.csv projects
+```
 
-## Extensions and Themes
+## Supabase Setup (Current)
 
-This fork supports extensions and theming through Open VSX configuration in `product.json`.
+Supabase sync is best-effort push on save.
 
-## Repository Notes
+Preferred environment variables:
+- `DATABASE_SUPABASE_URL`
+- `DATABASE_SUPABASE_ANON_KEY`
+- `DATABASE_SUPABASE_TABLE` (optional; default `database_documents`)
 
-- Upstream base: `microsoft/vscode`
-- Active project remote: `https://github.com/adamking77/ai-coo`
+Also supported for compatibility:
+- `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_TABLE`
+
+## Notes
+
+- Local `.db.json` is still source of truth.
+- Current sync pushes to Supabase but does not yet pull remote changes back into the editor.
 
 ## License
 

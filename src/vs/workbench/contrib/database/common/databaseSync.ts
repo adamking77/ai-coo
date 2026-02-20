@@ -91,13 +91,22 @@ function getSupabaseConfig(): SupabaseSyncConfig | undefined {
 	const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
 	const storage = (globalThis as { localStorage?: Storage }).localStorage;
 
-	const url = (storage?.getItem('genzen.database.supabase.url')
+	const url = (storage?.getItem('database.supabase.url')
+		?? storage?.getItem('genzen.database.supabase.url')
+		?? env?.DATABASE_SUPABASE_URL
+		?? env?.SUPABASE_URL
 		?? env?.GENZEN_SUPABASE_URL
 		?? '').trim().replace(/\/+$/, '');
-	const anonKey = (storage?.getItem('genzen.database.supabase.anonKey')
+	const anonKey = (storage?.getItem('database.supabase.anonKey')
+		?? storage?.getItem('genzen.database.supabase.anonKey')
+		?? env?.DATABASE_SUPABASE_ANON_KEY
+		?? env?.SUPABASE_ANON_KEY
 		?? env?.GENZEN_SUPABASE_ANON_KEY
 		?? '').trim();
-	const table = (storage?.getItem('genzen.database.supabase.table')
+	const table = (storage?.getItem('database.supabase.table')
+		?? storage?.getItem('genzen.database.supabase.table')
+		?? env?.DATABASE_SUPABASE_TABLE
+		?? env?.SUPABASE_TABLE
 		?? env?.GENZEN_SUPABASE_TABLE
 		?? 'database_documents').trim();
 
