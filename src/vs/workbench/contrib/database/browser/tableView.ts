@@ -425,17 +425,38 @@ export function renderTable(
 	const view = db.views.find(v => v.id === viewId);
 	if (!view) { return; }
 
-	const wrapper = append(container, $('div.db-table-wrapper'));
+	const selectedRecordIds = new Set<string>();
+	const root = append(container, $('div.db-table-root'));
+	const bulkActions = append(root, $('div.db-bulk-actions'));
+	const bulkCount = append(bulkActions, $('span.db-bulk-count'));
+	const bulkDuplicateBtn = append(bulkActions, $('button.db-btn')) as HTMLButtonElement;
+	bulkDuplicateBtn.textContent = 'Duplicate selected';
+	const bulkDeleteBtn = append(bulkActions, $('button.db-btn.db-icon-btn-danger')) as HTMLButtonElement;
+	bulkDeleteBtn.textContent = 'Delete selected';
+	const bulkSpacer = append(bulkActions, $('span.db-bulk-spacer'));
+	bulkSpacer.setAttribute('aria-hidden', 'true');
+	const bulkClearBtn = append(bulkActions, $('button.db-btn')) as HTMLButtonElement;
+	bulkClearBtn.textContent = 'Clear';
+
+	const wrapper = append(root, $('div.db-table-wrapper'));
 	const table = append(wrapper, $('table.db-table')) as HTMLTableElement;
 
 	const visibleFields = getVisibleFields(db.schema, view);
+	let records = applyFilters(db.records, view.filter, db.schema, db, opts.resolveDatabase);
+	records = applySorts(records, view.sort, db.schema, db, opts.resolveDatabase);
+	const visibleRecordIds = new Set(records.map(record => record.id));
 
 	// ─── Header ──────────────────────────────────────────────────────────────
 	const thead = append(table, $('thead'));
 	const headerRow = append(thead, $('tr'));
 
 	// Checkbox col
-	append(headerRow, $('th.db-th.db-th-check'));
+	const checkTh = append(headerRow, $('th.db-th.db-th-check'));
+	const selectAllCheckbox = append(checkTh, $('input.db-row-check')) as HTMLInputElement;
+	selectAllCheckbox.type = 'checkbox';
+	selectAllCheckbox.title = 'Select all rows';
+	selectAllCheckbox.setAttribute('aria-label', 'Select all rows');
+	selectAllCheckbox.addEventListener('click', event => event.stopPropagation());
 
 	for (const field of visibleFields) {
 		const th = append(headerRow, $('th.db-th')) as HTMLTableCellElement;
@@ -483,17 +504,79 @@ export function renderTable(
 	addFieldBtn.title = 'Add field';
 	addFieldBtn.addEventListener('click', () => showAddFieldForm(addFieldBtn, opts));
 
+	const syncRowCheckboxes = () => {
+		for (const checkbox of tbody.querySelectorAll<HTMLInputElement>('input.db-row-check[data-record-id]')) {
+			const recordId = checkbox.dataset.recordId;
+			if (!recordId) { continue; }
+			checkbox.checked = selectedRecordIds.has(recordId);
+		}
+	};
+
+	const getSelectedVisibleRecords = (): DBRecord[] => records.filter(record => selectedRecordIds.has(record.id));
+	const syncSelectionUI = () => {
+		for (const recordId of [...selectedRecordIds]) {
+			if (!visibleRecordIds.has(recordId)) {
+				selectedRecordIds.delete(recordId);
+			}
+		}
+
+		const selectedCount = getSelectedVisibleRecords().length;
+		bulkActions.classList.toggle('db-bulk-actions-visible', selectedCount > 0);
+		bulkCount.textContent = `${selectedCount} selected`;
+		bulkDuplicateBtn.disabled = selectedCount === 0;
+		bulkDeleteBtn.disabled = selectedCount === 0;
+
+		const totalCount = records.length;
+		selectAllCheckbox.checked = totalCount > 0 && selectedCount === totalCount;
+		selectAllCheckbox.indeterminate = selectedCount > 0 && selectedCount < totalCount;
+	};
+
+	selectAllCheckbox.addEventListener('change', event => {
+		event.stopPropagation();
+		if (selectAllCheckbox.checked) {
+			for (const record of records) {
+				selectedRecordIds.add(record.id);
+			}
+		} else {
+			selectedRecordIds.clear();
+		}
+		syncRowCheckboxes();
+		syncSelectionUI();
+	});
+
+	bulkDuplicateBtn.addEventListener('click', event => {
+		event.stopPropagation();
+		for (const record of getSelectedVisibleRecords()) {
+			opts.onDuplicateRecord(record);
+		}
+		selectedRecordIds.clear();
+		syncSelectionUI();
+	});
+
+	bulkDeleteBtn.addEventListener('click', event => {
+		event.stopPropagation();
+		for (const record of getSelectedVisibleRecords()) {
+			opts.onDeleteRecord(record);
+		}
+		selectedRecordIds.clear();
+		syncSelectionUI();
+	});
+
+	bulkClearBtn.addEventListener('click', event => {
+		event.stopPropagation();
+		selectedRecordIds.clear();
+		syncRowCheckboxes();
+		syncSelectionUI();
+	});
+
 	// ─── Body ─────────────────────────────────────────────────────────────────
 	const tbody = append(table, $('tbody'));
 
-	let records = applyFilters(db.records, view.filter, db.schema, db, opts.resolveDatabase);
-	records = applySorts(records, view.sort, db.schema, db, opts.resolveDatabase);
-
 	if (view.groupBy) {
-		renderGroupedRows(tbody, records, db, view, visibleFields, opts);
+		renderGroupedRows(tbody, records, db, view, visibleFields, opts, selectedRecordIds, syncSelectionUI);
 	} else {
 		for (const record of records) {
-			renderTableRow(tbody, record, db, visibleFields, opts);
+			renderTableRow(tbody, record, db, visibleFields, opts, selectedRecordIds, syncSelectionUI);
 		}
 	}
 
@@ -504,6 +587,8 @@ export function renderTable(
 	const addBtn = append(addTd, $('button.db-add-record-btn'));
 	addBtn.textContent = '+ New record';
 	addBtn.addEventListener('click', () => opts.onAddRecord());
+
+	syncSelectionUI();
 }
 
 function renderGroupedRows(
@@ -513,10 +598,12 @@ function renderGroupedRows(
 	view: DBView,
 	visibleFields: Field[],
 	opts: TableViewOptions,
+	selectedRecordIds: Set<string>,
+	onSelectionChange: () => void,
 ): void {
 	const groupField = db.schema.find(f => f.id === view.groupBy);
 	if (!groupField) {
-		for (const r of records) { renderTableRow(tbody, r, db, visibleFields, opts); }
+		for (const r of records) { renderTableRow(tbody, r, db, visibleFields, opts, selectedRecordIds, onSelectionChange); }
 		return;
 	}
 
@@ -548,7 +635,7 @@ function renderGroupedRows(
 		groupCount.textContent = String(groupRecords.length);
 
 		for (const record of groupRecords) {
-			renderTableRow(tbody, record, db, visibleFields, opts);
+			renderTableRow(tbody, record, db, visibleFields, opts, selectedRecordIds, onSelectionChange);
 		}
 	}
 }
@@ -559,6 +646,8 @@ function renderTableRow(
 	db: Database,
 	visibleFields: Field[],
 	opts: TableViewOptions,
+	selectedRecordIds: Set<string>,
+	onSelectionChange: () => void,
 ): void {
 	const tr = append(tbody, $('tr.db-row'));
 
@@ -567,7 +656,18 @@ function renderTableRow(
 	const cb = append(checkTd, $('input')) as HTMLInputElement;
 	cb.type = 'checkbox';
 	cb.className = 'db-row-check';
+	cb.dataset.recordId = record.id;
+	cb.checked = selectedRecordIds.has(record.id);
 	cb.addEventListener('click', e => e.stopPropagation());
+	cb.addEventListener('change', e => {
+		e.stopPropagation();
+		if (cb.checked) {
+			selectedRecordIds.add(record.id);
+		} else {
+			selectedRecordIds.delete(record.id);
+		}
+		onSelectionChange();
+	});
 
 	// Data cells
 	const cellEls: HTMLTableCellElement[] = [];
@@ -579,13 +679,17 @@ function renderTableRow(
 
 		renderCellValue(td, record, field, db, opts.resolveDatabase);
 
-		td.addEventListener('click', (e) => {
-			e.stopPropagation();
-			if (td.querySelector('.db-cell-editor, .db-multiselect-editor')) { return; }
-			openCellEditor(td, record, field, db, opts.resolveDatabase, (value) => {
-				record[field.id] = value;
-				opts.onCellEdit(record.id, field.id, value);
-				renderCellValue(td, record, field, db, opts.resolveDatabase);
+			td.addEventListener('click', (e) => {
+				e.stopPropagation();
+				if (field.type === 'relation') {
+					opts.onRecordClick(record);
+					return;
+				}
+				if (td.querySelector('.db-cell-editor, .db-multiselect-editor')) { return; }
+				openCellEditor(td, record, field, db, opts.resolveDatabase, (value) => {
+					record[field.id] = value;
+					opts.onCellEdit(record.id, field.id, value);
+					renderCellValue(td, record, field, db, opts.resolveDatabase);
 			});
 		});
 

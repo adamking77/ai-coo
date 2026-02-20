@@ -276,7 +276,33 @@ const CSS = `
 }
 
 /* ─── Table ──────────────────────────────────────────────────── */
-.db-table-wrapper { overflow: auto; height: 100%; }
+.db-table-root {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 0;
+}
+.db-bulk-actions {
+	display: none;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 8px;
+	padding: 6px 8px;
+	border: 1px solid var(--vscode-widget-border, var(--vscode-editorWidget-border));
+	border-radius: 6px;
+	background: var(--vscode-editorWidget-background);
+}
+.db-bulk-actions-visible { display: flex; }
+.db-bulk-count {
+	font-size: 12px;
+	color: var(--vscode-descriptionForeground);
+}
+.db-bulk-spacer { flex: 1; }
+.db-table-wrapper {
+	flex: 1;
+	min-height: 0;
+	overflow: auto;
+}
 .db-table {
 	width: 100%;
 	border-collapse: collapse;
@@ -298,7 +324,7 @@ const CSS = `
 .db-th-label { flex: 1; }
 .db-th-label-action { cursor: pointer; }
 .db-th-label-action:hover { color: var(--vscode-textLink-foreground); text-decoration: underline; text-underline-offset: 2px; }
-.db-th-check { width: 32px; }
+.db-th-check { width: 32px; text-align: center; }
 .db-th-add { width: 100%; }
 .db-row { cursor: pointer; }
 .db-row:hover td { background: var(--vscode-list-hoverBackground); }
@@ -312,7 +338,7 @@ const CSS = `
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
-.db-td-check { width: 32px; }
+.db-td-check { width: 32px; text-align: center; }
 .db-td-end { width: 100%; }
 .db-cell-display { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .db-cell-editor {

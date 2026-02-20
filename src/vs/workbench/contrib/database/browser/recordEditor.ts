@@ -1034,10 +1034,11 @@ function renderRelatedTasksSection(
 		let filterValue = '';
 
 		const getLinkedRecords = () => {
+			const liveTargetDb = getRelationTargetDatabase(db, relationField, resolveDatabase);
 			const linkedIds = new Set<string>(Array.isArray(working[relationField.id]) ? (working[relationField.id] as string[]) : []);
 			const backlinkFieldId = relationField.relation?.targetRelationFieldId;
 			if (backlinkFieldId) {
-				for (const candidate of targetDb.records) {
+				for (const candidate of liveTargetDb.records) {
 					const backlink = candidate[backlinkFieldId];
 					if (Array.isArray(backlink) && backlink.includes(working.id)) {
 						linkedIds.add(candidate.id);
@@ -1045,7 +1046,7 @@ function renderRelatedTasksSection(
 				}
 			}
 			return [...linkedIds]
-				.map(linkedId => targetDb.records.find(record => record.id === linkedId))
+				.map(linkedId => liveTargetDb.records.find(record => record.id === linkedId))
 				.filter((record): record is DBRecord => Boolean(record));
 		};
 
