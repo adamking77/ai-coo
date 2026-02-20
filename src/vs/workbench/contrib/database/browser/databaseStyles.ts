@@ -1362,6 +1362,54 @@ const CSS = `
 .db-context-menu-item:hover { background: var(--vscode-list-hoverBackground); }
 .db-context-menu-item--danger { color: var(--vscode-errorForeground); }
 
+/* Enforce light/dark parity from workbench theme classes */
+.monaco-workbench.vs .db-dropdown-panel,
+.monaco-workbench.hc-light .db-dropdown-panel,
+.monaco-workbench.vs .db-context-menu,
+.monaco-workbench.hc-light .db-context-menu {
+	background: var(--vscode-editor-background, #ffffff) !important;
+	background-color: var(--vscode-editor-background, #ffffff) !important;
+	color: var(--vscode-editor-foreground, #1f1f1f) !important;
+	border-color: var(--vscode-widget-border, rgba(0, 0, 0, 0.2)) !important;
+}
+
+.monaco-workbench.vs .db-context-menu-item,
+.monaco-workbench.hc-light .db-context-menu-item {
+	color: var(--vscode-editor-foreground, #1f1f1f) !important;
+	-webkit-text-fill-color: var(--vscode-editor-foreground, #1f1f1f) !important;
+}
+
+.monaco-workbench.vs .db-dropdown-panel .db-select,
+.monaco-workbench.vs .db-dropdown-panel .db-input,
+.monaco-workbench.vs .db-dropdown-panel .db-cell-editor,
+.monaco-workbench.hc-light .db-dropdown-panel .db-select,
+.monaco-workbench.hc-light .db-dropdown-panel .db-input,
+.monaco-workbench.hc-light .db-dropdown-panel .db-cell-editor {
+	background: var(--vscode-input-background, #ffffff) !important;
+	background-color: var(--vscode-input-background, #ffffff) !important;
+	color: var(--vscode-input-foreground, #1f1f1f) !important;
+	-webkit-text-fill-color: var(--vscode-input-foreground, #1f1f1f) !important;
+	border-color: var(--vscode-input-border, var(--vscode-widget-border, rgba(0, 0, 0, 0.2))) !important;
+}
+
+.monaco-workbench.vs .db-dropdown-panel .db-select option,
+.monaco-workbench.vs .db-dropdown-panel .db-cell-editor option,
+.monaco-workbench.hc-light .db-dropdown-panel .db-select option,
+.monaco-workbench.hc-light .db-dropdown-panel .db-cell-editor option {
+	background: var(--vscode-editor-background, #ffffff) !important;
+	color: var(--vscode-editor-foreground, #1f1f1f) !important;
+}
+
+.monaco-workbench.vs-dark .db-dropdown-panel,
+.monaco-workbench.hc-black .db-dropdown-panel,
+.monaco-workbench.vs-dark .db-context-menu,
+.monaco-workbench.hc-black .db-context-menu {
+	background: var(--vscode-editorWidget-background, var(--vscode-editor-background, #1e1e1e)) !important;
+	background-color: var(--vscode-editorWidget-background, var(--vscode-editor-background, #1e1e1e)) !important;
+	color: var(--vscode-editorWidget-foreground, var(--vscode-foreground, #cccccc)) !important;
+	border-color: var(--vscode-widget-border, rgba(128, 128, 128, 0.35)) !important;
+}
+
 /* ─── Database List Additions ────────────────────────────────── */
 .db-list-menu-btn {
 	display: none;
