@@ -21,6 +21,51 @@ npm ci
 
 Node `22.22.0+` is required.
 
+## Run As Installed Mac App
+
+After first build, you can run this like a normal desktop app:
+
+1. Build and launch once:
+
+```bash
+cd ~/projects/ai-coo
+npm ci
+./scripts/code.sh
+```
+
+2. Install into Applications:
+
+```bash
+cp -R ".build/electron/Code - OSS.app" "/Applications/AI COO.app"
+```
+
+3. Launch:
+
+```bash
+open "/Applications/AI COO.app"
+```
+
+If macOS blocks launch, right-click the app and choose `Open` once.
+
+### Recommended: Isolate AI COO Data
+
+Use separate data and extension folders so this app stays isolated:
+
+```bash
+"/Applications/AI COO.app/Contents/MacOS/Code - OSS" \
+  --user-data-dir "$HOME/.ai-coo-data" \
+  --extensions-dir "$HOME/.ai-coo-extensions"
+```
+
+### Launch Installed App With Supabase
+
+```bash
+DATABASE_SUPABASE_URL="https://YOUR-PROJECT.supabase.co" \
+DATABASE_SUPABASE_ANON_KEY="YOUR_ANON_KEY" \
+DATABASE_SUPABASE_TABLE="database_documents" \
+"/Applications/AI COO.app/Contents/MacOS/Code - OSS"
+```
+
 ## Tester Setup
 
 Full setup guide:
