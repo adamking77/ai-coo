@@ -5,6 +5,7 @@
 
 import { $, append, clearNode } from '../../../../base/browser/dom.js';
 import { Database, DatabaseResolver, DBRecord, Field, getFieldOptionColor, getFieldValue, getReadableTextColor, getRecordTitle, getRelationTargetDatabase, getStatusColor, STATUS_OPTIONS } from '../common/database.js';
+import { appendDatabaseOverlay } from './overlayHost.js';
 
 export interface RecordEditorCallbacks {
 	onSave: (updated: DBRecord) => void;
@@ -793,7 +794,7 @@ function showOptionPicker(
 
 	const panel = document.createElement('div');
 	panel.className = 'db-dropdown-panel db-record-picker-panel';
-	document.body.appendChild(panel);
+	appendDatabaseOverlay(panel, anchor);
 
 	const showSearch = Boolean(options.showSearch);
 	const search = showSearch ? append(panel, $('input.db-input')) as HTMLInputElement : undefined;
@@ -1427,7 +1428,7 @@ function showInlineDropdownPanel(
 	document.querySelector(`.${panelClassName}`)?.remove();
 	const panel = document.createElement('div');
 	panel.className = `db-dropdown-panel ${panelClassName}`;
-	document.body.appendChild(panel);
+	appendDatabaseOverlay(panel, anchor);
 
 	const close = () => panel.remove();
 	render(panel, close);
@@ -1478,7 +1479,7 @@ function showCreateRelatedPopover(
 
 	const panel = document.createElement('div');
 	panel.className = 'db-dropdown-panel db-related-create-popover';
-	document.body.appendChild(panel);
+	appendDatabaseOverlay(panel, anchor);
 
 	const input = append(panel, $('input.db-input')) as HTMLInputElement;
 	input.placeholder = placeholder;

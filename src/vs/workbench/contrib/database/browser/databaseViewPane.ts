@@ -31,6 +31,7 @@ import { showRecordEditor, RecordEditorCallbacks } from './recordEditor.js';
 import { showSortPanel, showFilterPanel } from './sortFilterPanel.js';
 import { injectDatabaseStyles } from './databaseStyles.js';
 import { DatabaseEditorInput } from './databaseEditorInput.js';
+import { appendDatabaseOverlay } from './overlayHost.js';
 
 const VIEW_ICONS: Record<ViewType, string> = {
 	table: '▦',
@@ -202,7 +203,8 @@ export class DatabaseViewPane extends ViewPane {
 		document.querySelectorAll('.db-context-menu').forEach(el => el.remove());
 		const menu = document.createElement('div');
 		menu.className = 'db-context-menu';
-		document.body.appendChild(menu);
+		const anchor = e.currentTarget instanceof HTMLElement ? e.currentTarget : this.element;
+		appendDatabaseOverlay(menu, anchor);
 		menu.style.top = `${e.clientY}px`;
 		menu.style.left = `${e.clientX}px`;
 
@@ -396,7 +398,7 @@ export class DatabaseViewPane extends ViewPane {
 		document.querySelectorAll('.db-context-menu').forEach(el => el.remove());
 		const menu = document.createElement('div');
 		menu.className = 'db-context-menu';
-		document.body.appendChild(menu);
+		appendDatabaseOverlay(menu, anchor);
 		const rect = anchor.getBoundingClientRect();
 		menu.style.top = `${rect.bottom + 4}px`;
 		menu.style.left = `${rect.left}px`;

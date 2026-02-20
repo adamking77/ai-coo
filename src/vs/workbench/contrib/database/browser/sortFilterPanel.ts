@@ -6,6 +6,7 @@
 import { $, append, clearNode } from '../../../../base/browser/dom.js';
 import { generateUuid } from '../../../../base/common/uuid.js';
 import { Database, DBView, Field } from '../common/database.js';
+import { appendDatabaseOverlay } from './overlayHost.js';
 
 type SortEntry = { id: string; fieldId: string; direction: 'asc' | 'desc' };
 type FilterEntry = { id: string; fieldId: string; op: string; value: string };
@@ -59,7 +60,7 @@ function createDropdown(anchor: HTMLElement, content: HTMLElement): HTMLElement 
 	const panel = document.createElement('div');
 	panel.className = 'db-dropdown-panel';
 	panel.appendChild(content);
-	document.body.appendChild(panel);
+	appendDatabaseOverlay(panel, anchor);
 
 	const rect = anchor.getBoundingClientRect();
 	panel.style.top = `${rect.bottom + 4}px`;

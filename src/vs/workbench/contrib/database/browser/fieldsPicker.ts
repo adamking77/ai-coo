@@ -5,6 +5,7 @@
 
 import { $, append, clearNode } from '../../../../base/browser/dom.js';
 import { Database, DBView } from '../common/database.js';
+import { appendDatabaseOverlay } from './overlayHost.js';
 
 /** Show/hide/reorder fields panel anchored below a trigger button */
 export function showFieldsPicker(
@@ -129,7 +130,7 @@ export function showFieldsPicker(
 
 	render();
 
-	document.body.appendChild(panel);
+	appendDatabaseOverlay(panel, anchor);
 	const rect = anchor.getBoundingClientRect();
 	panel.style.top = `${rect.bottom + 4}px`;
 	panel.style.left = `${rect.left}px`;

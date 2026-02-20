@@ -5,6 +5,7 @@
 
 import { $, append, clearNode } from '../../../../base/browser/dom.js';
 import { Database, DatabaseResolver, DBRecord, Field, DBView, getVisibleFields, applySorts, applyFilters, getStatusColor, STATUS_OPTIONS, getFieldValue, getRecordTitle, getRelationTargetDatabase, getFieldOptionColor, getReadableTextColor } from '../common/database.js';
+import { appendDatabaseOverlay } from './overlayHost.js';
 
 export interface TableViewOptions {
 	onRecordClick: (record: DBRecord) => void;
@@ -246,7 +247,7 @@ function showTableOptionPicker(anchor: HTMLElement, options: TablePickerOptions)
 
 	const panel = document.createElement('div');
 	panel.className = 'db-dropdown-panel db-record-picker-panel db-table-picker-panel';
-	document.body.appendChild(panel);
+	appendDatabaseOverlay(panel, anchor);
 
 	const selectedRow = append(panel, $('div.db-record-picker-selected'));
 	const list = append(panel, $('div.db-record-picker-list'));
@@ -648,7 +649,7 @@ function showPropertyMenu(anchor: HTMLElement, field: Field, onSave: (field: Fie
 
 	const panel = document.createElement('div');
 	panel.className = 'db-dropdown-panel db-property-menu-panel';
-	document.body.appendChild(panel);
+	appendDatabaseOverlay(panel, anchor);
 
 	const nameRow = append(panel, $('div.db-property-menu-name-row'));
 	const nameInput = append(nameRow, $('input.db-input.db-property-menu-name-input')) as HTMLInputElement;
@@ -839,7 +840,7 @@ function showAddFieldForm(anchor: HTMLElement, opts: TableViewOptions): void {
 
 	const form = document.createElement('div');
 	form.className = 'db-add-field-form db-dropdown-panel';
-	document.body.appendChild(form);
+	appendDatabaseOverlay(form, anchor);
 
 	const nameInput = append(form, $('input.db-input')) as HTMLInputElement;
 	nameInput.placeholder = 'Field name';
