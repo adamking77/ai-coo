@@ -34,6 +34,14 @@ node -v
 
 ## 3) Install Dependencies and Launch
 
+Recommended one-time readiness check:
+
+```bash
+./scripts/ai-coo-preflight.sh
+```
+
+Then launch:
+
 ```bash
 ./scripts/launch-ai-coo.sh
 ```
@@ -42,6 +50,12 @@ Fast launch (skip compile):
 
 ```bash
 ./scripts/launch-ai-coo.sh --no-compile
+```
+
+Launcher help:
+
+```bash
+./scripts/launch-ai-coo.sh --help
 ```
 
 ## 4) How Database Storage Works
@@ -144,9 +158,21 @@ npm ci
 ./scripts/code.sh
 ```
 
+Preferred:
+
+```bash
+./scripts/launch-ai-coo.sh
+```
+
 ### Supabase not receiving rows
 
 Check:
 1. Env vars are set in the same shell command/session where you run `./scripts/code.sh`.
 2. Supabase table name matches your env var.
 3. The table has `db_id` as primary key.
+
+## 8) Locked UX Behavior
+
+Database behavior contract:
+
+- `docs/DATABASE-BEHAVIOR-CONTRACT.md`

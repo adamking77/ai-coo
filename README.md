@@ -21,6 +21,19 @@ npm ci
 
 Node `22.22.0+` is required.
 
+## Internal-Ready Setup (Recommended)
+
+Run this once after pulling new code:
+
+```bash
+./scripts/ai-coo-preflight.sh
+```
+
+This does:
+- full compile
+- automated database regression checks
+- confirms app is ready to run
+
 ## One-Command Launcher (Recommended)
 
 Use the launcher script to run the app with isolated data/extensions:
@@ -30,7 +43,7 @@ Use the launcher script to run the app with isolated data/extensions:
 ```
 
 What it does:
-- uses the repo Node version (via `nvm` if available)
+- uses the repo Node version (via `fnm` or `nvm` if available)
 - installs dependencies if missing
 - compiles the app
 - launches with:
@@ -41,6 +54,12 @@ Fast launch (skip compile):
 
 ```bash
 ./scripts/launch-ai-coo.sh --no-compile
+```
+
+Show launcher help:
+
+```bash
+./scripts/launch-ai-coo.sh --help
 ```
 
 ## Run As Installed Mac App
@@ -93,6 +112,12 @@ DATABASE_SUPABASE_TABLE="database_documents" \
 Full setup guide:
 
 - `docs/TESTER-SETUP.md`
+
+## Locked Database UX Contract
+
+Behavior spec for the database UX:
+
+- `docs/DATABASE-BEHAVIOR-CONTRACT.md`
 
 That guide covers:
 - local install and launch

@@ -679,17 +679,17 @@ function renderTableRow(
 
 		renderCellValue(td, record, field, db, opts.resolveDatabase);
 
-			td.addEventListener('click', (e) => {
-				e.stopPropagation();
-				if (field.type === 'relation') {
-					opts.onRecordClick(record);
-					return;
-				}
-				if (td.querySelector('.db-cell-editor, .db-multiselect-editor')) { return; }
-				openCellEditor(td, record, field, db, opts.resolveDatabase, (value) => {
-					record[field.id] = value;
-					opts.onCellEdit(record.id, field.id, value);
-					renderCellValue(td, record, field, db, opts.resolveDatabase);
+		td.addEventListener('click', (e) => {
+			e.stopPropagation();
+			if (field.type === 'relation') {
+				opts.onRecordClick(record);
+				return;
+			}
+			if (td.querySelector('.db-cell-editor, .db-multiselect-editor')) { return; }
+			openCellEditor(td, record, field, db, opts.resolveDatabase, (value) => {
+				record[field.id] = value;
+				opts.onCellEdit(record.id, field.id, value);
+				renderCellValue(td, record, field, db, opts.resolveDatabase);
 			});
 		});
 
