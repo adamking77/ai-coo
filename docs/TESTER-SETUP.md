@@ -37,25 +37,25 @@ node -v
 Recommended one-time readiness check:
 
 ```bash
-./scripts/ai-coo-preflight.sh
+./scripts/sogo-preflight.sh
 ```
 
 Then launch:
 
 ```bash
-./scripts/launch-ai-coo.sh
+./scripts/launch-sogo.sh
 ```
 
 Fast launch (skip compile):
 
 ```bash
-./scripts/launch-ai-coo.sh --no-compile
+./scripts/launch-sogo.sh --no-compile
 ```
 
 Launcher help:
 
 ```bash
-./scripts/launch-ai-coo.sh --help
+./scripts/launch-sogo.sh --help
 ```
 
 ## 4) How Database Storage Works
@@ -97,7 +97,7 @@ DATABASE_SUPABASE_TABLE=database_documents
 Then run:
 
 ```bash
-./scripts/launch-ai-coo.sh --no-compile
+./scripts/launch-sogo.sh --no-compile
 ```
 
 Alternative one-off launch env vars:
@@ -142,7 +142,7 @@ In the database UI, use the Export CSV action for the table you want.
 Create/open a local SQLite file:
 
 ```bash
-sqlite3 ai-coo-test.db
+sqlite3 sogo-test.db
 ```
 
 Inside the SQLite prompt:
@@ -181,7 +181,7 @@ npm ci
 Preferred:
 
 ```bash
-./scripts/launch-ai-coo.sh
+./scripts/launch-sogo.sh
 ```
 
 ### Supabase not receiving rows

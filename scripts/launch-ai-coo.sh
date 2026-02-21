@@ -5,6 +5,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REQUIRED_NODE_FILE="$ROOT/.nvmrc"
 DO_COMPILE=1
+LAUNCH_ENTRYPOINT="${LAUNCH_ENTRYPOINT:-launch-ai-coo.sh}"
 
 LAUNCH_ARGS=()
 for arg in "$@"; do
@@ -13,17 +14,20 @@ for arg in "$@"; do
 			DO_COMPILE=0
 			;;
 		-h|--help)
-			cat <<'EOF'
-Usage: ./scripts/launch-ai-coo.sh [--no-compile] [-- <code args>]
+			cat <<EOF
+Usage: ./scripts/$LAUNCH_ENTRYPOINT [--no-compile] [-- <code args>]
 
 Options:
   --no-compile   Skip compile for faster startup
   -h, --help     Show this help
 
 Examples:
-  ./scripts/launch-ai-coo.sh
-  ./scripts/launch-ai-coo.sh --no-compile
-  ./scripts/launch-ai-coo.sh -- --disable-gpu
+  ./scripts/$LAUNCH_ENTRYPOINT
+  ./scripts/$LAUNCH_ENTRYPOINT --no-compile
+  ./scripts/$LAUNCH_ENTRYPOINT -- --disable-gpu
+
+Backward-compatible alias:
+  ./scripts/launch-ai-coo.sh [same options]
 EOF
 			exit 0
 			;;
@@ -123,10 +127,10 @@ compile_if_requested() {
 
 launch_app() {
 	local user_data_dir extensions_dir
-	user_data_dir="${AI_COO_USER_DATA_DIR:-$HOME/.ai-coo-data}"
-	extensions_dir="${AI_COO_EXTENSIONS_DIR:-$HOME/.ai-coo-extensions}"
+	user_data_dir="${SOGO_USER_DATA_DIR:-${AI_COO_USER_DATA_DIR:-$HOME/.sogo-data}}"
+	extensions_dir="${SOGO_EXTENSIONS_DIR:-${AI_COO_EXTENSIONS_DIR:-$HOME/.sogo-extensions}}"
 
-	echo "Launching AI COO app..."
+	echo "Launching Sogo app..."
 	echo "User data: $user_data_dir"
 	echo "Extensions: $extensions_dir"
 

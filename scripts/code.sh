@@ -45,14 +45,34 @@ function code() {
 	ensure_node_version
 	cd "$ROOT"
 
-	if [[ "$OSTYPE" == "darwin"* ]]; then
-		NAME=`node -p "require('./product.json').nameLong"`
-		EXE_NAME=`node -p "require('./product.json').nameShort"`
-		CODE="./.build/electron/$NAME.app/Contents/MacOS/$EXE_NAME"
-	else
+	CODE=""
+	resolve_code_binary() {
+		if [[ "$OSTYPE" == "darwin"* ]]; then
+			local NAME EXE_NAME CANDIDATE FALLBACK_APP FALLBACK_BIN
+			NAME=`node -p "require('./product.json').nameLong"`
+			EXE_NAME=`node -p "require('./product.json').nameShort"`
+			CANDIDATE="./.build/electron/$NAME.app/Contents/MacOS/$EXE_NAME"
+			if [[ -x "$CANDIDATE" ]]; then
+				CODE="$CANDIDATE"
+				return 0
+			fi
+			FALLBACK_APP=$(find "./.build/electron" -maxdepth 1 -type d -name "*.app" | head -n 1)
+			if [[ -n "$FALLBACK_APP" ]]; then
+				FALLBACK_BIN=$(find "$FALLBACK_APP/Contents/MacOS" -maxdepth 1 -type f | head -n 1)
+				if [[ -n "$FALLBACK_BIN" && -x "$FALLBACK_BIN" ]]; then
+					CODE="$FALLBACK_BIN"
+					return 0
+				fi
+			fi
+			CODE="$CANDIDATE"
+			return 0
+		fi
+
+		local NAME
 		NAME=`node -p "require('./product.json').applicationName"`
 		CODE=".build/electron/$NAME"
-	fi
+		return 0
+	}
 
 	# Get electron, compile, built-in extensions
 	if [[ -z "${VSCODE_SKIP_PRELAUNCH}" ]]; then
@@ -66,6 +86,8 @@ function code() {
 			return 1
 		fi
 	fi
+
+	resolve_code_binary
 
 	# Manage built-in extensions
 	if [[ "$1" == "--builtin" ]]; then
@@ -97,13 +119,15 @@ function code-wsl()
 	export DISPLAY="$HOST_IP:0"
 
 	# in a wsl shell
-	ELECTRON="$ROOT/.build/electron/Code - OSS.exe"
+	local WIN_EXE_NAME
+	WIN_EXE_NAME=`node -p "require('./product.json').nameShort"`
+	ELECTRON="$ROOT/.build/electron/$WIN_EXE_NAME.exe"
 	if [ -f "$ELECTRON"  ]; then
 		local CWD=$(pwd)
 		cd $ROOT
 		export WSLENV=ELECTRON_RUN_AS_NODE/w:VSCODE_DEV/w:$WSLENV
 		local WSL_EXT_ID="ms-vscode-remote.remote-wsl"
-		local WSL_EXT_WLOC=$(echo "" | VSCODE_DEV=1 ELECTRON_RUN_AS_NODE=1 "$ROOT/.build/electron/Code - OSS.exe" "out/cli.js" --locate-extension $WSL_EXT_ID)
+		local WSL_EXT_WLOC=$(echo "" | VSCODE_DEV=1 ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "out/cli.js" --locate-extension $WSL_EXT_ID)
 		cd $CWD
 		if [ -n "$WSL_EXT_WLOC" ]; then
 			# replace \r\n with \n in WSL_EXT_WLOC

@@ -1,4 +1,4 @@
-# AI COO App (GenZen Editor)
+# Sogo (Working Codename)
 
 A custom VS Code fork built as an operational command center with Notion-style databases inside the editor.
 
@@ -26,7 +26,7 @@ Node `22.22.0+` is required.
 Run this once after pulling new code:
 
 ```bash
-./scripts/ai-coo-preflight.sh
+./scripts/sogo-preflight.sh
 ```
 
 This does:
@@ -39,7 +39,7 @@ This does:
 Use the launcher script to run the app with isolated data/extensions:
 
 ```bash
-./scripts/launch-ai-coo.sh
+./scripts/launch-sogo.sh
 ```
 
 What it does:
@@ -47,19 +47,19 @@ What it does:
 - installs dependencies if missing
 - compiles the app
 - launches with:
-  - `--user-data-dir ~/.ai-coo-data`
-  - `--extensions-dir ~/.ai-coo-extensions`
+  - `--user-data-dir ~/.sogo-data`
+  - `--extensions-dir ~/.sogo-extensions`
 
 Fast launch (skip compile):
 
 ```bash
-./scripts/launch-ai-coo.sh --no-compile
+./scripts/launch-sogo.sh --no-compile
 ```
 
 Show launcher help:
 
 ```bash
-./scripts/launch-ai-coo.sh --help
+./scripts/launch-sogo.sh --help
 ```
 
 ## Run As Installed Mac App
@@ -77,25 +77,25 @@ npm ci
 2. Install into Applications:
 
 ```bash
-cp -R ".build/electron/Code - OSS.app" "/Applications/AI COO.app"
+cp -R ".build/electron/Sogo.app" "/Applications/Sogo.app"
 ```
 
 3. Launch:
 
 ```bash
-open "/Applications/AI COO.app"
+open "/Applications/Sogo.app"
 ```
 
 If macOS blocks launch, right-click the app and choose `Open` once.
 
-### Recommended: Isolate AI COO Data
+### Recommended: Isolate Sogo Data
 
 Use separate data and extension folders so this app stays isolated:
 
 ```bash
-"/Applications/AI COO.app/Contents/MacOS/Code - OSS" \
-  --user-data-dir "$HOME/.ai-coo-data" \
-  --extensions-dir "$HOME/.ai-coo-extensions"
+"/Applications/Sogo.app/Contents/MacOS/Sogo" \
+  --user-data-dir "$HOME/.sogo-data" \
+  --extensions-dir "$HOME/.sogo-extensions"
 ```
 
 ### Launch Installed App With Supabase
@@ -104,7 +104,7 @@ Use separate data and extension folders so this app stays isolated:
 DATABASE_SUPABASE_URL="https://YOUR-PROJECT.supabase.co" \
 DATABASE_SUPABASE_ANON_KEY="YOUR_ANON_KEY" \
 DATABASE_SUPABASE_TABLE="database_documents" \
-"/Applications/AI COO.app/Contents/MacOS/Code - OSS"
+"/Applications/Sogo.app/Contents/MacOS/Sogo"
 ```
 
 ## Tester Setup
@@ -138,7 +138,7 @@ To use SQLite today:
 Example:
 
 ```bash
-sqlite3 ai-coo-test.db
+sqlite3 sogo-test.db
 ```
 
 Then in the SQLite prompt:
@@ -171,7 +171,7 @@ Also supported for compatibility:
 The launcher auto-loads `.env.local`:
 
 ```bash
-./scripts/launch-ai-coo.sh --no-compile
+./scripts/launch-sogo.sh --no-compile
 ```
 
 ## Notes

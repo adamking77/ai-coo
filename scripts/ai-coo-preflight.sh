@@ -64,7 +64,7 @@ maybe_install_dependencies() {
 	fi
 }
 
-echo "AI COO preflight starting..."
+echo "Sogo preflight starting..."
 use_repo_node_version_if_possible
 ensure_node_version
 maybe_install_dependencies
@@ -75,15 +75,18 @@ echo "Step 1/3: compile"
 )
 
 echo "Step 2/3: regression checks"
-"$ROOT/scripts/ai-coo-regression-check.sh"
+"$ROOT/scripts/sogo-regression-check.sh"
 
 echo "Step 3/3: ready"
 cat <<'EOF'
 Preflight complete.
 
+Preferred command:
+  ./scripts/sogo-preflight.sh
+
 Daily launch command:
-  ./scripts/launch-ai-coo.sh --no-compile
+  ./scripts/launch-sogo.sh --no-compile
 
 Fresh launch command (after code changes):
-  ./scripts/launch-ai-coo.sh
+  ./scripts/launch-sogo.sh
 EOF

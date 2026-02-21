@@ -29,7 +29,8 @@ for file in "$TABLE_OUT" "$RECORD_OUT" "$STYLES_OUT"; do
 	fi
 done
 
-echo "Running AI COO database regression checks..."
+echo "Running Sogo database regression checks..."
+echo "Tip: preferred wrapper is ./scripts/sogo-regression-check.sh"
 
 assert_contains "$TABLE_OUT" "Duplicate selected" "bulk action label: duplicate"
 assert_contains "$TABLE_OUT" "Delete selected" "bulk action label: delete"

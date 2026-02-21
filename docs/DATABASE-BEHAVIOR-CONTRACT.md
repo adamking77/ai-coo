@@ -1,6 +1,6 @@
 # Database Behavior Contract
 
-This file locks the expected UX behavior for the AI COO database system.
+This file locks the expected UX behavior for the Sogo database system.
 
 If behavior changes are needed, update this file first, then ship code changes.
 
@@ -42,4 +42,4 @@ If behavior changes are needed, update this file first, then ship code changes.
 ## 5) Change Discipline
 
 - Any UX behavior changes must be reflected here in the same PR/commit.
-- Run `./scripts/ai-coo-preflight.sh` before pushing production-facing updates.
+- Run `./scripts/sogo-preflight.sh` before pushing production-facing updates.
