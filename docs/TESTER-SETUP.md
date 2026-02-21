@@ -80,7 +80,27 @@ create table if not exists public.database_documents (
 
 ### 5.2 Launch with env vars
 
-Preferred generic env vars:
+Preferred setup:
+
+```bash
+cp .env.example .env.local
+```
+
+Edit `.env.local` with your own values:
+
+```bash
+DATABASE_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
+DATABASE_SUPABASE_ANON_KEY=YOUR_ANON_KEY
+DATABASE_SUPABASE_TABLE=database_documents
+```
+
+Then run:
+
+```bash
+./scripts/launch-ai-coo.sh --no-compile
+```
+
+Alternative one-off launch env vars:
 
 ```bash
 DATABASE_SUPABASE_URL="https://YOUR-PROJECT.supabase.co" \

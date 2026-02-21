@@ -71,6 +71,17 @@ use_repo_node_version_if_possible() {
 	fi
 }
 
+load_local_env_if_present() {
+	local env_file="$ROOT/.env.local"
+	if [[ -f "$env_file" ]]; then
+		echo "Loading local environment from .env.local..."
+		set -a
+		# shellcheck source=/dev/null
+		source "$env_file"
+		set +a
+	fi
+}
+
 ensure_node_exists() {
 	if ! command -v node >/dev/null 2>&1; then
 		echo "Error: Node.js not found. Install Node and retry."
@@ -133,6 +144,7 @@ launch_app() {
 }
 
 use_repo_node_version_if_possible
+load_local_env_if_present
 ensure_node_exists
 ensure_node_version
 maybe_install_dependencies

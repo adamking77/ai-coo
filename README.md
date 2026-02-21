@@ -152,6 +152,14 @@ Then in the SQLite prompt:
 
 Supabase sync is best-effort push on save.
 
+Create local env file (recommended):
+
+```bash
+cp .env.example .env.local
+```
+
+Then set your real values in `.env.local`.
+
 Preferred environment variables:
 - `DATABASE_SUPABASE_URL`
 - `DATABASE_SUPABASE_ANON_KEY`
@@ -159,6 +167,12 @@ Preferred environment variables:
 
 Also supported for compatibility:
 - `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_TABLE`
+
+The launcher auto-loads `.env.local`:
+
+```bash
+./scripts/launch-ai-coo.sh --no-compile
+```
 
 ## Notes
 
