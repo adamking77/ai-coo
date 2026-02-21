@@ -20,6 +20,7 @@ import { IEditorGroup } from '../../../services/editor/common/editorGroupsServic
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { DatabaseEditorInput } from './databaseEditorInput.js';
 import { IDatabaseService } from './databaseService.js';
+import { IDatabaseSyncService } from '../common/databaseSync.js';
 import { Database, DBRecord, DBView, Field, inferImplicitRelationTargets, STATUS_OPTIONS, ViewType } from '../common/database.js';
 import { renderTable } from './tableView.js';
 import { renderKanban } from './kanbanView.js';
@@ -70,6 +71,7 @@ export class DatabaseEditor extends EditorPane {
 		@IThemeService themeService: IThemeService,
 		@IStorageService storageService: IStorageService,
 		@IDatabaseService private readonly databaseService: IDatabaseService,
+		@IDatabaseSyncService private readonly databaseSyncService: IDatabaseSyncService,
 		@IEditorService private readonly editorService: IEditorService,
 		@IFileService fileService: IFileService,
 		@INotificationService private readonly notificationService: INotificationService,
@@ -83,6 +85,11 @@ export class DatabaseEditor extends EditorPane {
 		this._register(fileService.onDidFilesChange(e => {
 			if (this.inputResource && e.contains(this.getDatabaseResource(this.inputResource.resource), FileChangeType.UPDATED, FileChangeType.ADDED)) {
 				void this.loadDatabase();
+			}
+		}));
+		this._register(this.databaseSyncService.onDidChangeStatus(status => {
+			if (this.db && status.key === this.db.id && !this.activeRecordId) {
+				this.render();
 			}
 		}));
 	}
@@ -212,6 +219,25 @@ export class DatabaseEditor extends EditorPane {
 		addViewBtn.addEventListener('click', () => this.showAddViewMenu(addViewBtn));
 
 		append(this.toolbarEl, $('span.db-toolbar-spacer'));
+		const syncStatus = this.databaseSyncService.getStatus(this.db.id);
+		const syncLabel = append(this.toolbarEl, $('span.db-sync-status'));
+		if (!syncStatus || syncStatus.state === 'disabled') {
+			syncLabel.textContent = localize('database.sync.localOnly', 'Local only');
+			syncLabel.classList.add('db-sync-status--disabled');
+			syncLabel.title = localize('database.sync.localOnlyDescription', 'Supabase sync is not configured for this app profile.');
+		} else if (syncStatus.state === 'syncing') {
+			syncLabel.textContent = localize('database.sync.syncing', 'Syncing...');
+			syncLabel.classList.add('db-sync-status--syncing');
+		} else if (syncStatus.state === 'synced') {
+			syncLabel.textContent = localize('database.sync.synced', 'Synced');
+			syncLabel.classList.add('db-sync-status--synced');
+		} else {
+			syncLabel.textContent = localize('database.sync.failed', 'Sync failed');
+			syncLabel.classList.add('db-sync-status--error');
+			if (syncStatus.errorMessage) {
+				syncLabel.title = syncStatus.errorMessage;
+			}
+		}
 
 		const filterBtn = append(this.toolbarEl, $('button.db-btn'));
 		filterBtn.textContent = localize('database.filter', 'Filter');

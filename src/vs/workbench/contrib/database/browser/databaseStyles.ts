@@ -150,6 +150,39 @@ const CSS = `
 	background: var(--vscode-editorGroupHeader-tabsBackground);
 }
 .db-toolbar-spacer { flex: 1; }
+.db-sync-status {
+	display: inline-flex;
+	align-items: center;
+	height: 20px;
+	padding: 0 8px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 600;
+	border: 1px solid var(--vscode-focusBorder, var(--vscode-textLink-foreground, #4da3ff));
+	user-select: none;
+	background: var(--vscode-editorWidget-background, rgba(128, 128, 128, 0.12));
+	color: var(--vscode-textLink-foreground, #4da3ff);
+}
+.db-sync-status--disabled {
+	color: var(--vscode-descriptionForeground);
+	background: var(--vscode-editorWidget-background, rgba(128, 128, 128, 0.12));
+	border-color: var(--vscode-widget-border, rgba(128, 128, 128, 0.25));
+}
+.db-sync-status--syncing {
+	color: var(--vscode-textLink-foreground, #4da3ff);
+	background: var(--vscode-editorWidget-background, rgba(128, 128, 128, 0.12));
+	border-color: var(--vscode-focusBorder, var(--vscode-textLink-foreground, #4da3ff));
+}
+.db-sync-status--synced {
+	color: var(--vscode-textLink-foreground, #4da3ff);
+	background: var(--vscode-list-hoverBackground, var(--vscode-editorWidget-background, rgba(128, 128, 128, 0.16)));
+	border-color: var(--vscode-focusBorder, var(--vscode-textLink-foreground, #4da3ff));
+}
+.db-sync-status--error {
+	color: var(--vscode-errorForeground, #f48771);
+	background: var(--vscode-editorWidget-background, rgba(128, 128, 128, 0.12));
+	border-color: var(--vscode-errorForeground, #f48771);
+}
 .db-content { flex: 1; overflow: auto; }
 .db-empty-state {
 	display: flex;

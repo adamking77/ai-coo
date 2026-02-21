@@ -88,6 +88,17 @@ open "/Applications/Sogo.app"
 
 If macOS blocks launch, right-click the app and choose `Open` once.
 
+### One-Command Installed Launcher
+
+```bash
+./scripts/run-installed-sogo.sh
+```
+
+This launches the installed app with:
+- `--user-data-dir ~/.sogo-data`
+- `--extensions-dir ~/.sogo-extensions`
+- env values from `.env.local` (if present)
+
 ### Recommended: Isolate Sogo Data
 
 Use separate data and extension folders so this app stays isolated:

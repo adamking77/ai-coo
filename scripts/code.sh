@@ -45,6 +45,14 @@ function code() {
 	ensure_node_version
 	cd "$ROOT"
 
+	local ENV_FILE="$ROOT/.env.local"
+	if [[ -f "$ENV_FILE" ]]; then
+		set -a
+		# shellcheck source=/dev/null
+		source "$ENV_FILE"
+		set +a
+	fi
+
 	CODE=""
 	resolve_code_binary() {
 		if [[ "$OSTYPE" == "darwin"* ]]; then
