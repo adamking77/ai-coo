@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Crisp off-white background -->
+  <rect width="512" height="512" rx="112" fill="#F2F4F8" />
+
+  <g transform="translate(256 256)">
+    <!-- Perfect, uninterrupted geometric circle -->
+    <!-- Drawn with extremely thin, elegant, uniform line weight -->
+    <circle cx="0" cy="0" r="144" fill="none" stroke="#0F111A" stroke-width="8" />
+
+    <!-- Single, perfectly angled straight line cutting through the center (45 degrees) -->
+    <!-- Extends slightly beyond the circle to create the optical intersection -->
+    <line x1="-180" y1="180" x2="180" y2="-180" stroke="#0F111A" stroke-width="8" stroke-linecap="round" />
+
+    <!-- Single bright intellectual blue dot resting exactly on the intersecting line -->
+    <!-- Positioned precisely along the 45-degree axis (x = -y) -->
+    <circle cx="72" cy="-72" r="16" fill="#2563EB" />
+  </g>
+</svg>

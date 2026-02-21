@@ -1,0 +1,111 @@
+Creative Brief: Sogo **App** Logo
+
+1. Project Context
+
+Product name (working): Sogo
+Product type: desktop app (custom VS Code fork) for knowledge work + operational execution
+
+Core promise: combines Notion-style databases with the power of a real development workspace
+
+Key differentiator: databases live directly in the main editor workflow, not bolted on as a side tool
+
+Data model: local-first JSON databases with optional Supabase sync
+
+User reality: founder/operators, small teams, AI-native workflows, lots of context switching across docs/tasks/projects
+
+2. Brand Objective
+
+Create a brand identity that feels like: command center intelligence, calm control, high signal, zero clutter.
+
+Avoid generic “productivity SaaS” visuals.
+
+Signal: serious tool for people running real biz operations who need to develop an A.I. COO style integration but don't know how to get started, not a lightweight note app.
+
+3. Positioning Statement
+
+“Sogo is the operational HQ for people who run real work: docs, databases, and execution in one native workspace.”
+
+4. Messaging Pillars
+
+One system: docs + databases + execution in one place
+Context-first: records, tasks, and notes stay connected
+Operator-grade: fast, structured, extensible, local-first
+
+AI-ready: built for agent-assisted workflows inside the workspace
+
+5. Brand Personality
+
+Calm
+Precise
+Capable
+Minimal, but not sterile
+Sophisticated without enterprise bloat
+
+6. Logo Brief
+
+Create a logo system with:
+
+App icon (small sizes): 16, 32, 64, 128, 256, 512 px
+
+Full wordmark + icon lockup
+
+Monochrome and accent versions
+
+Works on dark and light themes
+
+Feels native in a code/editor environment (macOS dock, title bar, sidebar icon scale)
+
+Avoid:
+
+Overly literal database cylinders
+
+Generic “notion clone” cues
+
+Heavy gradients/gloss/3D
+
+Cute mascot style
+
+Trendy-but-short-lived AI spark/star visuals
+
+7. Visual System Direction
+
+Color direction:
+
+Base: neutral blacks, charcoals, off-whites, slate grays, dark blues/midnights
+
+Accent: calm, intelligent blue (not neon)
+
+Typography direction:
+
+Sans for brand/UI: modern, crisp, legible
+
+Optional mono companion for technical flavor
+
+Avoid playful rounded fonts and novelty display faces
+
+Suggested vibe references:
+
+High-end developer tools
+
+Mission-control dashboards
+
+Japanese minimalism + modern software polish
+
+8. Target Audience
+
+Founder/operators running multiple workstreams
+AI-native builders using Claude/Codex in daily workflows
+Users dissatisfied with tool fragmentation (Notion + docs + tasks + code split)
+
+
+9. Success Criteria
+
+Icon is instantly recognizable at tiny size
+Brand feels premium and calm in both dark and light modes
+Design feels native to pro workflow tooling, not generic SaaS templates
+
+15. Practical Constraints
+
+Must look good inside a developer-style environment
+Must scale from solo founder use to broader user adoption
+Should not totally lock brand to “GenZen” naming; Sogo should stand alone for other users

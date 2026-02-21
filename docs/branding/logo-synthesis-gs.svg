@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Minimal Off-White Background -->
+  <rect width="512" height="512" rx="112" fill="#F2F4F8" />
+
+  <g transform="translate(256 256)">
+    <!--
+      SYNTHESIS OF THE TWO CONCEPTS
+      1. The Optical GS: The perfect, unbroken outer geometric circle.
+      2. The Bauhaus S v3: The continuous flowing 180-degree arcs.
+      3. The Optical Illusion: The S is rotated exactly 45 degrees on the diagonal,
+         so the arcs touch the outer boundary tangentially, bridging the 'circle' and 'S' flow.
+    -->
+
+    <!-- Outer unbroken circle (Optical GS DNA) -->
+    <circle cx="0" cy="0" r="144" fill="none" stroke="#0F111A" stroke-width="12" />
+
+    <!-- Inner Flowing 'S' rotated to the 45-degree diagonal -->
+    <g transform="rotate(45)">
+      <!-- The continuous S-curve path connecting tangentially to the boundary -->
+      <path d="M 0 -144
+               A 72 72 0 0 1 0 0
+               A 72 72 0 0 0 0 144"
+            fill="none"
+            stroke="#0F111A"
+            stroke-width="12"
+            stroke-linecap="round" />
+    </g>
+
+    <!-- The exact center point of synthesis: Operator Blue -->
+    <circle cx="0" cy="0" r="16" fill="#2563EB" />
+  </g>
+</svg>
