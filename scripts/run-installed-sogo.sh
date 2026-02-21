@@ -10,6 +10,8 @@ fi
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_PATH="${SOGO_APP_PATH:-/Applications/Sogo.app}"
 APP_BIN="$APP_PATH/Contents/MacOS/Sogo"
+APP_BIN_WRAPPED="$APP_PATH/Contents/MacOS/Sogo-bin"
+APP_ENTRY="$APP_PATH/Contents/Resources/app"
 USER_DATA_DIR="${SOGO_USER_DATA_DIR:-${AI_COO_USER_DATA_DIR:-$HOME/.sogo-data}}"
 EXTENSIONS_DIR="${SOGO_EXTENSIONS_DIR:-${AI_COO_EXTENSIONS_DIR:-$HOME/.sogo-extensions}}"
 
@@ -20,13 +22,13 @@ Usage: ./scripts/run-installed-sogo.sh [-- <app args>]
 Launches an installed /Applications/Sogo.app with stable data and extension paths.
 
 Environment overrides:
-  SOGO_APP_PATH          default: /Applications/Sogo.app
-  SOGO_USER_DATA_DIR     default: ~/.sogo-data
-  SOGO_EXTENSIONS_DIR    default: ~/.sogo-extensions
+SOGO_APP_PATH          default: /Applications/Sogo.app
+SOGO_USER_DATA_DIR     default: ~/.sogo-data
+SOGO_EXTENSIONS_DIR    default: ~/.sogo-extensions
 
 Examples:
-  ./scripts/run-installed-sogo.sh
-  ./scripts/run-installed-sogo.sh -- --disable-gpu
+./scripts/run-installed-sogo.sh
+./scripts/run-installed-sogo.sh -- --disable-gpu
 EOF
 	exit 0
 fi
@@ -38,6 +40,9 @@ if [[ -f "$ROOT/.env.local" ]]; then
 	set +a
 fi
 
+# Prevent inherited shells from forcing Electron to run as plain Node.js.
+unset ELECTRON_RUN_AS_NODE
+
 if [[ ! -x "$APP_BIN" ]]; then
 	echo "Error: Sogo app binary not found at:"
 	echo "  $APP_BIN"
@@ -47,7 +52,17 @@ if [[ ! -x "$APP_BIN" ]]; then
 	exit 1
 fi
 
-exec "$APP_BIN" \
+if [[ -x "$APP_BIN_WRAPPED" ]]; then
+	exec "$APP_BIN" "$@"
+fi
+
+if [[ ! -e "$APP_ENTRY" ]]; then
+	echo "Error: app entry not found at:"
+	echo "  $APP_ENTRY"
+	exit 1
+fi
+
+exec "$APP_BIN" "$APP_ENTRY" \
 	--user-data-dir "$USER_DATA_DIR" \
 	--extensions-dir "$EXTENSIONS_DIR" \
 	"$@"
